@@ -1,221 +1,215 @@
 """
-Obstacles - Quản lý chướng ngại vật và vùng cấm bay
-=====================================================
-Lý thuyết bám sát:
-- Chương 5 (Wumpus World): Obstacle ↔ Pit, NoFlyZone ↔ Wumpus
-- Chương 2 (Dynamic Environment): Chướng ngại vật có thể di chuyển
-
-Giải thích cho sinh viên:
-    Trong Wumpus World (Ch5), agent phải tránh Pit (hố) và Wumpus.
-    Tương tự, UAV phải tránh chướng ngại vật (tòa nhà, cây) và
-    vùng cấm bay (No-Fly Zone). Đây là ví dụ thực tế của bài toán
-    Wumpus World trong không gian 3D.
+Obstacles & NoFlyZone cho UAV Environment
+Lý thuyết: Chương 2 (Environment types), Chương 3 (State constraints)
 """
 
-from typing import Tuple, List, Optional
-from enum import Enum
+import numpy as np
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 
-class ObstacleType(Enum):
-    """Phân loại chướng ngại vật."""
-    STATIC = "static"       # Tĩnh: tòa nhà, núi, cây
-    DYNAMIC = "dynamic"     # Động: chim, drone khác, máy bay
-
-
+@dataclass
 class Obstacle:
-    """Chướng ngại vật trong môi trường.
-
-    Tương tự PIT trong Wumpus World (Ch5):
-    - Pit: agent rơi xuống → game over
-    - Obstacle: UAV va chạm → hỏng/rơi
-
-    Parameters
-    ----------
-    position : Tuple[int, int, int]
-        Vị trí (x, y, z) góc dưới trái
-    size : Tuple[int, int, int]
-        Kích thước (sx, sy, sz) theo 3 trục
-    obstacle_type : ObstacleType
-        Loại: tĩnh hoặc động
-    name : str, optional
-        Tên mô tả (ví dụ: "Tòa nhà A", "Cây lớn")
     """
+    Chướng ngại vật trong không gian 3D
 
-    def __init__(self, position: Tuple[int, int, int],
-                 size: Tuple[int, int, int] = (1, 1, 1),
-                 obstacle_type: ObstacleType = ObstacleType.STATIC,
-                 name: str = ""):
-        self.position = position
-        self.size = size
-        self.obstacle_type = obstacle_type
-        self.name = name
-
-        # Tính bounding box
-        self.x_min, self.y_min, self.z_min = position
-        self.x_max = self.x_min + size[0]
-        self.y_max = self.y_min + size[1]
-        self.z_max = self.z_min + size[2]
-
-    def contains(self, x: int, y: int, z: int) -> bool:
-        """Kiểm tra điểm (x,y,z) có nằm trong chướng ngại vật không."""
-        return (self.x_min <= x < self.x_max and
-                self.y_min <= y < self.y_max and
-                self.z_min <= z < self.z_max)
+    Static: tòa nhà, cây cối, địa hình
+    Dynamic: máy bay khác, chim, drone khác
+    """
+    x: int
+    y: int
+    z: int
+    size_x: int = 1
+    size_y: int = 1
+    size_z: int = 1
+    is_dynamic: bool = False
+    name: str = "obstacle"
 
     def get_cells(self) -> List[Tuple[int, int, int]]:
-        """Lấy tất cả ô bị chiếm bởi chướng ngại vật."""
+        """Trả về tất cả ô mà obstacle chiếm"""
         cells = []
-        for x in range(self.x_min, self.x_max):
-            for y in range(self.y_min, self.y_max):
-                for z in range(self.z_min, self.z_max):
-                    cells.append((x, y, z))
+        for dx in range(self.size_x):
+            for dy in range(self.size_y):
+                for dz in range(self.size_z):
+                    cells.append((self.x + dx, self.y + dy, self.z + dz))
         return cells
 
-    def move(self, dx: int, dy: int, dz: int):
-        """Di chuyển chướng ngại vật (cho loại DYNAMIC).
+    def is_collision(self, pos: Tuple[int, int, int]) -> bool:
+        """Kiểm tra vị trí có va chạm với obstacle này không"""
+        px, py, pz = pos
+        return (self.x <= px < self.x + self.size_x and
+                self.y <= py < self.y + self.size_y and
+                self.z <= pz < self.z + self.size_z)
 
-        Thể hiện tính DYNAMIC của môi trường (Ch2):
-        Chướng ngại vật di chuyển → UAV phải re-plan.
-        """
-        if self.obstacle_type == ObstacleType.DYNAMIC:
-            self.position = (
-                self.position[0] + dx,
-                self.position[1] + dy,
-                self.position[2] + dz,
-            )
-            self.x_min += dx
-            self.y_min += dy
-            self.z_min += dz
-            self.x_max += dx
-            self.y_max += dy
-            self.z_max += dz
-
-    def __repr__(self) -> str:
-        return (f"Obstacle('{self.name}' at {self.position}, "
-                f"size={self.size}, type={self.obstacle_type.value})")
+    def move(self, dx: int = 0, dy: int = 0, dz: int = 0):
+        """Di chuyển obstacle (dynamic obstacles — Ch2: Dynamic environment)"""
+        if self.is_dynamic:
+            self.x += dx
+            self.y += dy
+            self.z += dz
 
 
+@dataclass
 class NoFlyZone:
-    """Vùng cấm bay - tuyệt đối không được bay vào.
-
-    Tương tự WUMPUS trong Wumpus World (Ch5):
-    - Wumpus: agent chết → game over
-    - NoFlyZone: UAV vi phạm pháp luật → bị phạt nặng
-
-    Trong thực tế: sân bay, khu quân sự, khu dân cư đông đúc.
-
-    Parameters
-    ----------
-    position : Tuple[int, int, int]
-        Vị trí góc dưới trái
-    size : Tuple[int, int, int]
-        Kích thước vùng cấm
-    name : str
-        Tên vùng cấm (ví dụ: "Sân bay Nội Bài")
-    penalty : float
-        Mức phạt nếu vi phạm (dùng cho Utility function - Ch7)
     """
+    Vùng cấm bay — No-Fly Zone
 
-    def __init__(self, position: Tuple[int, int, int],
-                 size: Tuple[int, int, int] = (1, 1, 1),
-                 name: str = "", penalty: float = -1000.0):
-        self.position = position
-        self.size = size
-        self.name = name
-        self.penalty = penalty
+    Ví dụ: vùng sân bay, vùng quân sự, vùng dân cư
+    UAV PHẢI tránh — luật cứng (Ch5: KB rules)
+    """
+    x1: int
+    y1: int
+    z1: int
+    x2: int
+    y2: int
+    z2: int
+    name: str = "no_fly_zone"
+    reason: str = "restricted"
 
-        self.x_min, self.y_min, self.z_min = position
-        self.x_max = self.x_min + size[0]
-        self.y_max = self.y_min + size[1]
-        self.z_max = self.z_min + size[2]
-
-    def contains(self, x: int, y: int, z: int) -> bool:
-        """Kiểm tra điểm có nằm trong vùng cấm bay không."""
-        return (self.x_min <= x < self.x_max and
-                self.y_min <= y < self.y_max and
-                self.z_min <= z < self.z_max)
+    def contains(self, pos: Tuple[int, int, int]) -> bool:
+        """Kiểm tra vị trí có nằm trong vùng cấm không"""
+        px, py, pz = pos
+        return (self.x1 <= px <= self.x2 and
+                self.y1 <= py <= self.y2 and
+                self.z1 <= pz <= self.z2)
 
     def get_cells(self) -> List[Tuple[int, int, int]]:
-        """Lấy tất cả ô trong vùng cấm bay."""
         cells = []
-        for x in range(self.x_min, self.x_max):
-            for y in range(self.y_min, self.y_max):
-                for z in range(self.z_min, self.z_max):
+        for x in range(self.x1, self.x2 + 1):
+            for y in range(self.y1, self.y2 + 1):
+                for z in range(self.z1, self.z2 + 1):
                     cells.append((x, y, z))
         return cells
-
-    def __repr__(self) -> str:
-        return f"NoFlyZone('{self.name}' at {self.position}, size={self.size})"
 
 
 class ObstacleManager:
-    """Quản lý tất cả chướng ngại vật và vùng cấm bay.
-
-    Class này quản lý tập trung, giúp dễ dàng:
-    - Thêm/xóa chướng ngại vật
-    - Kiểm tra va chạm
-    - Cập nhật vị trí chướng ngại vật động
+    """
+    Quản lý toàn bộ obstacles và no-fly zones trong môi trường
+    Tích hợp với GridWorld3D
     """
 
     def __init__(self):
         self.obstacles: List[Obstacle] = []
         self.no_fly_zones: List[NoFlyZone] = []
 
-    def add_obstacle(self, obstacle: Obstacle):
-        """Thêm chướng ngại vật."""
-        self.obstacles.append(obstacle)
+    # ------------------------------------------------------------------ #
+    #  Thêm obstacles                                                      #
+    # ------------------------------------------------------------------ #
 
-    def add_no_fly_zone(self, zone: NoFlyZone):
-        """Thêm vùng cấm bay."""
-        self.no_fly_zones.append(zone)
+    def add_obstacle(self, obs: Obstacle):
+        self.obstacles.append(obs)
 
-    def is_collision(self, x: int, y: int, z: int) -> bool:
-        """Kiểm tra va chạm tại vị trí (x, y, z).
+    def add_no_fly_zone(self, nfz: NoFlyZone):
+        self.no_fly_zones.append(nfz)
 
-        Tương tự Percept trong Wumpus World (Ch5):
-        Agent cảm nhận Breeze (gần Pit) hoặc Stench (gần Wumpus).
-        Ở đây: kiểm tra trực tiếp có chướng ngại vật không.
+    def add_building(self, x: int, y: int, height: int,
+                     size_x: int = 1, size_y: int = 1, name: str = "building"):
+        """Thêm toà nhà: từ z=0 lên đến height"""
+        obs = Obstacle(x=x, y=y, z=0,
+                       size_x=size_x, size_y=size_y, size_z=height,
+                       name=name)
+        self.obstacles.append(obs)
+        return obs
+
+    def generate_random_obstacles(self, count: int,
+                                  width: int, height: int, depth: int,
+                                  seed: int = None) -> List[Obstacle]:
+        """Sinh chướng ngại vật ngẫu nhiên — phân bố đều không gian"""
+        rng = np.random.default_rng(seed)
+        new_obs = []
+        for i in range(count):
+            x = int(rng.integers(1, width - 2))
+            y = int(rng.integers(1, height - 2))
+            z = int(rng.integers(0, depth - 1))
+            sx = int(rng.integers(1, 3))
+            sy = int(rng.integers(1, 3))
+            sz = int(rng.integers(1, max(2, depth // 3)))
+            obs = Obstacle(x=x, y=y, z=z,
+                           size_x=sx, size_y=sy, size_z=sz,
+                           name=f"rand_obs_{i}")
+            new_obs.append(obs)
+            self.obstacles.append(obs)
+        return new_obs
+
+    # ------------------------------------------------------------------ #
+    #  Kiểm tra va chạm                                                   #
+    # ------------------------------------------------------------------ #
+
+    def is_collision(self, pos: Tuple[int, int, int]) -> bool:
+        """
+        Kiểm tra va chạm tại vị trí pos với bất kỳ obstacle nào
+        Dùng trong A* để loại bỏ state không an toàn (Ch3)
         """
         for obs in self.obstacles:
-            if obs.contains(x, y, z):
+            if obs.is_collision(pos):
                 return True
         return False
 
-    def is_in_no_fly_zone(self, x: int, y: int, z: int) -> bool:
-        """Kiểm tra có nằm trong vùng cấm bay không."""
-        for zone in self.no_fly_zones:
-            if zone.contains(x, y, z):
+    def is_in_no_fly_zone(self, pos: Tuple[int, int, int]) -> bool:
+        """Kiểm tra vị trí có trong vùng cấm bay không"""
+        for nfz in self.no_fly_zones:
+            if nfz.contains(pos):
                 return True
         return False
 
-    def is_safe(self, x: int, y: int, z: int) -> bool:
-        """Kiểm tra vị trí an toàn (không va chạm VÀ không cấm bay).
+    def is_safe(self, pos: Tuple[int, int, int]) -> bool:
+        """An toàn = không va chạm VÀ không trong no-fly zone"""
+        return not self.is_collision(pos) and not self.is_in_no_fly_zone(pos)
 
-        Logic (Ch5): Safe(x,y,z) ⟺ ¬Obstacle(x,y,z) ∧ ¬NoFlyZone(x,y,z)
+    # ------------------------------------------------------------------ #
+    #  Áp dụng lên GridWorld3D                                            #
+    # ------------------------------------------------------------------ #
+
+    def apply_to_grid(self, grid):
         """
-        return not self.is_collision(x, y, z) and not self.is_in_no_fly_zone(x, y, z)
-
-    def update_dynamic(self):
-        """Cập nhật vị trí chướng ngại vật động.
-
-        Thể hiện tính DYNAMIC của môi trường (Ch2):
-        Chướng ngại vật di chuyển mỗi bước thời gian.
+        Ghi tất cả obstacles và no-fly zones lên GridWorld3D
+        Gọi sau khi thêm đủ obstacles
         """
+        from src.environment.grid_world import CellType
+
         for obs in self.obstacles:
-            if obs.obstacle_type == ObstacleType.DYNAMIC:
-                # Di chuyển ngẫu nhiên (đơn giản hóa)
-                import random
-                dx = random.choice([-1, 0, 1])
-                dy = random.choice([-1, 0, 1])
-                obs.move(dx, dy, 0)
+            for cell in obs.get_cells():
+                if grid.in_bounds(cell):
+                    grid.set_cell(cell, CellType.OBSTACLE)
 
-    def get_stats(self) -> dict:
-        """Thống kê chướng ngại vật."""
-        static = sum(1 for o in self.obstacles if o.obstacle_type == ObstacleType.STATIC)
-        dynamic = sum(1 for o in self.obstacles if o.obstacle_type == ObstacleType.DYNAMIC)
-        return {
-            "tổng_chướng_ngại": len(self.obstacles),
-            "tĩnh": static,
-            "động": dynamic,
-            "vùng_cấm_bay": len(self.no_fly_zones),
-        }
+        for nfz in self.no_fly_zones:
+            for cell in nfz.get_cells():
+                if grid.in_bounds(cell):
+                    grid.set_cell(cell, CellType.NO_FLY_ZONE)
+
+    # ------------------------------------------------------------------ #
+    #  Tiện ích                                                            #
+    # ------------------------------------------------------------------ #
+
+    def update_dynamic_obstacles(self, grid):
+        """
+        Cập nhật vị trí dynamic obstacles (gọi mỗi timestep)
+        Phản ánh môi trường Dynamic (Ch2)
+        """
+        from src.environment.grid_world import CellType
+        import random
+
+        for obs in self.obstacles:
+            if obs.is_dynamic:
+                # Xóa vị trí cũ
+                for cell in obs.get_cells():
+                    if grid.in_bounds(cell):
+                        grid.set_cell(cell, CellType.FREE)
+                # Di chuyển ngẫu nhiên 1 bước
+                dx, dy = random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+                obs.move(dx=dx, dy=dy)
+                # Ghi vị trí mới
+                for cell in obs.get_cells():
+                    if grid.in_bounds(cell):
+                        grid.set_cell(cell, CellType.OBSTACLE)
+
+    def summary(self) -> str:
+        total_cells = sum(
+            obs.size_x * obs.size_y * obs.size_z for obs in self.obstacles
+        )
+        return (
+            f"ObstacleManager:\n"
+            f"  Obstacles: {len(self.obstacles)} ({total_cells} cells)\n"
+            f"  No-Fly Zones: {len(self.no_fly_zones)}\n"
+            f"  Dynamic: {sum(1 for o in self.obstacles if o.is_dynamic)}"
+        )

@@ -1,188 +1,185 @@
 """
-Visualizer - Hiển thị trực quan 3D
-====================================
-Hiển thị môi trường và đường bay bằng Matplotlib 3D.
-
-Mục đích: Giúp DEMO trực quan khi bảo vệ đồ án.
+Visualizer - Hiển thị môi trường 3D cho UAV
+Dùng Matplotlib 3D (không cần Pygame)
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from typing import List, Tuple, Optional
-
-from .grid_world import GridWorld3D, CellType
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
-class Visualizer:
-    """Hiển thị môi trường 3D và đường bay.
+# Màu sắc
+COLOR_OBSTACLE  = (0.8, 0.2, 0.2, 0.6)   # đỏ
+COLOR_NFZ       = (1.0, 0.5, 0.0, 0.4)   # cam
+COLOR_START     = (0.2, 0.8, 0.2, 1.0)   # xanh lá
+COLOR_GOAL      = (0.2, 0.4, 1.0, 1.0)   # xanh dương
+COLOR_PATH      = (1.0, 0.8, 0.0, 0.9)   # vàng
+COLOR_FREE      = (0.9, 0.9, 0.9, 0.05)  # trắng mờ
 
-    Sử dụng Matplotlib 3D để vẽ:
-    - Chướng ngại vật (đỏ)
-    - Vùng cấm bay (cam)
-    - Điểm Start (xanh lá)
-    - Điểm Goal (xanh dương)
-    - Đường bay (đường nét đứt)
+
+def _voxel_faces(x, y, z):
+    """Tạo 6 mặt của 1 voxel đơn vị tại (x, y, z)"""
+    return [
+        [(x,y,z),(x+1,y,z),(x+1,y+1,z),(x,y+1,z)],
+        [(x,y,z+1),(x+1,y,z+1),(x+1,y+1,z+1),(x,y+1,z+1)],
+        [(x,y,z),(x+1,y,z),(x+1,y,z+1),(x,y,z+1)],
+        [(x,y+1,z),(x+1,y+1,z),(x+1,y+1,z+1),(x,y+1,z+1)],
+        [(x,y,z),(x,y+1,z),(x,y+1,z+1),(x,y,z+1)],
+        [(x+1,y,z),(x+1,y+1,z),(x+1,y+1,z+1),(x+1,y,z+1)],
+    ]
+
+
+class UAVVisualizer:
+    """
+    Vẽ môi trường 3D với Matplotlib
+
+    Màu quy ước:
+    - Đỏ:      Obstacle
+    - Cam:     No-Fly Zone
+    - Xanh lá: Điểm bắt đầu (Start)
+    - Xanh dương: Điểm đích (Goal)
+    - Vàng:    Đường bay (Path)
     """
 
-    # Bảng màu
-    COLORS = {
-        'obstacle': 'red',
-        'no_fly_zone': 'orange',
-        'start': 'lime',
-        'goal': 'dodgerblue',
-        'path_astar': 'blue',
-        'path_sa': 'green',
-        'path_ga': 'red',
-        'free': 'lightgray',
-    }
+    def __init__(self, grid, title: str = "UAV Environment 3D"):
+        self.grid = grid
+        self.title = title
 
-    def __init__(self, world: GridWorld3D):
-        self.world = world
+    def _add_voxels(self, ax, cells, color):
+        faces = []
+        for (x, y, z) in cells:
+            faces.extend(_voxel_faces(x, y, z))
+        if faces:
+            poly = Poly3DCollection(faces, alpha=color[3])
+            poly.set_facecolor(color[:3])
+            poly.set_edgecolor((0, 0, 0, 0.1))
+            ax.add_collection3d(poly)
 
-    def plot_environment(self, title: str = "Môi trường UAV 3D",
-                         show_grid: bool = False,
-                         paths: Optional[dict] = None,
-                         save_path: Optional[str] = None):
-        """Vẽ môi trường 3D.
+    def _setup_axes(self, ax):
+        g = self.grid
+        ax.set_xlim(0, g.width)
+        ax.set_ylim(0, g.height)
+        ax.set_zlim(0, g.depth)
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z (Altitude)")
+        ax.set_title(self.title)
 
-        Parameters
-        ----------
-        title : str
-            Tiêu đề biểu đồ
-        show_grid : bool
-            Hiển thị lưới nền
-        paths : dict, optional
-            Dictionary {tên_đường: [(x,y,z), ...]}
-            Ví dụ: {"A*": path1, "A*+SA": path2, "GA": path3}
-        save_path : str, optional
-            Đường dẫn lưu hình ảnh
+    def render(self, path: list = None, show: bool = True, save_path: str = None):
         """
+        Vẽ toàn bộ môi trường
+
+        Args:
+            path:      Danh sách tọa độ [(x,y,z), ...] — đường bay
+            show:      True để hiện cửa sổ
+            save_path: Đường dẫn lưu ảnh (vd: 'output.png')
+        """
+        from src.environment.grid_world import CellType
+
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111, projection='3d')
+        self._setup_axes(ax)
 
-        # Vẽ chướng ngại vật (đỏ)
-        obs_x, obs_y, obs_z = [], [], []
-        nfz_x, nfz_y, nfz_z = [], [], []
+        g = self.grid
 
-        for x in range(self.world.width):
-            for y in range(self.world.height):
-                for z in range(self.world.depth):
-                    cell = self.world.grid[x, y, z]
-                    if cell == CellType.OBSTACLE:
-                        obs_x.append(x)
-                        obs_y.append(y)
-                        obs_z.append(z)
-                    elif cell == CellType.NO_FLY_ZONE:
-                        nfz_x.append(x)
-                        nfz_y.append(y)
-                        nfz_z.append(z)
+        # Thu thập cells theo loại
+        obstacles, nfz_cells, start_cells, goal_cells = [], [], [], []
+        for x in range(g.width):
+            for y in range(g.height):
+                for z in range(g.depth):
+                    ct = CellType(g.grid[x, y, z])
+                    if ct == CellType.OBSTACLE:
+                        obstacles.append((x, y, z))
+                    elif ct == CellType.NO_FLY_ZONE:
+                        nfz_cells.append((x, y, z))
+                    elif ct == CellType.START:
+                        start_cells.append((x, y, z))
+                    elif ct == CellType.GOAL:
+                        goal_cells.append((x, y, z))
 
-        if obs_x:
-            ax.scatter(obs_x, obs_y, obs_z, c=self.COLORS['obstacle'],
-                       marker='s', s=50, alpha=0.6, label='Chướng ngại vật')
+        self._add_voxels(ax, obstacles,   COLOR_OBSTACLE)
+        self._add_voxels(ax, nfz_cells,   COLOR_NFZ)
+        self._add_voxels(ax, start_cells, COLOR_START)
+        self._add_voxels(ax, goal_cells,  COLOR_GOAL)
 
-        if nfz_x:
-            ax.scatter(nfz_x, nfz_y, nfz_z, c=self.COLORS['no_fly_zone'],
-                       marker='s', s=50, alpha=0.4, label='Vùng cấm bay')
+        # Vẽ đường bay
+        if path and len(path) > 1:
+            xs = [p[0] + 0.5 for p in path]
+            ys = [p[1] + 0.5 for p in path]
+            zs = [p[2] + 0.5 for p in path]
+            ax.plot(xs, ys, zs, color=COLOR_PATH[:3],
+                    linewidth=2.5, marker='o', markersize=3, label="Path")
+            # Đánh dấu start & goal
+            ax.scatter(xs[0],  ys[0],  zs[0],  color='green', s=100, zorder=5)
+            ax.scatter(xs[-1], ys[-1], zs[-1], color='blue',  s=100, zorder=5)
 
-        # Vẽ Start và Goal
-        if self.world.start:
-            sx, sy, sz = self.world.start
-            ax.scatter([sx], [sy], [sz], c=self.COLORS['start'],
-                       marker='*', s=200, label=f'Start ({sx},{sy},{sz})')
-
-        if self.world.goal:
-            gx, gy, gz = self.world.goal
-            ax.scatter([gx], [gy], [gz], c=self.COLORS['goal'],
-                       marker='*', s=200, label=f'Goal ({gx},{gy},{gz})')
-
-        # Vẽ đường bay (nếu có)
-        if paths:
-            path_colors = ['blue', 'green', 'red', 'purple', 'cyan']
-            for i, (name, path) in enumerate(paths.items()):
-                if path:
-                    px = [p[0] for p in path]
-                    py = [p[1] for p in path]
-                    pz = [p[2] for p in path]
-                    color = path_colors[i % len(path_colors)]
-                    ax.plot(px, py, pz, color=color, linewidth=2,
-                            linestyle='-', marker='.', markersize=3,
-                            label=f'{name} ({len(path)} bước)')
-
-        # Cài đặt trục
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z (Độ cao)')
-        ax.set_title(title)
-        ax.legend(loc='upper left', fontsize=8)
-
-        # Giới hạn trục
-        ax.set_xlim(0, self.world.width)
-        ax.set_ylim(0, self.world.height)
-        ax.set_zlim(0, self.world.depth)
+        # Legend thủ công
+        from matplotlib.patches import Patch
+        legend = [
+            Patch(facecolor=COLOR_OBSTACLE[:3], label='Obstacle'),
+            Patch(facecolor=COLOR_NFZ[:3],      label='No-Fly Zone'),
+            Patch(facecolor=COLOR_START[:3],    label='Start'),
+            Patch(facecolor=COLOR_GOAL[:3],     label='Goal'),
+        ]
+        if path:
+            from matplotlib.lines import Line2D
+            legend.append(Line2D([0],[0], color=COLOR_PATH[:3],
+                                 linewidth=2, label='Path'))
+        ax.legend(handles=legend, loc='upper left')
 
         if save_path:
-            plt.savefig(save_path, dpi=150, bbox_inches='tight')
-            print(f"Đã lưu hình: {save_path}")
+            plt.savefig(save_path, dpi=120, bbox_inches='tight')
+            print(f"Đã lưu ảnh: {save_path}")
+        if show:
+            plt.tight_layout()
+            plt.show()
+        plt.close(fig)
 
-        plt.tight_layout()
-        plt.show()
-
-    def plot_path_comparison(self, paths: dict,
-                             title: str = "So sánh các thuật toán",
-                             save_path: Optional[str] = None):
-        """Vẽ so sánh nhiều đường bay trên cùng 1 bản đồ.
-
-        Dùng để so sánh: A* vs A*+SA vs GA (Giai đoạn 3).
-
-        Parameters
-        ----------
-        paths : dict
-            {"A*": path1, "A*+SA": path2, "GA": path3}
+    def render_slice(self, z_level: int = 0, path: list = None,
+                     show: bool = True, save_path: str = None):
         """
-        self.plot_environment(title=title, paths=paths, save_path=save_path)
-
-    def plot_2d_slice(self, z_level: int = 0,
-                      path: Optional[List[Tuple[int, int, int]]] = None,
-                      title: str = "Lát cắt 2D"):
-        """Vẽ lát cắt 2D tại một độ cao z.
-
-        Hữu ích khi bản đồ 3D quá phức tạp để nhìn.
-
-        Parameters
-        ----------
-        z_level : int
-            Độ cao cắt
-        path : list, optional
-            Đường bay để vẽ trên lát cắt
+        Vẽ lát cắt 2D tại độ cao z_level (nhanh hơn render 3D)
+        Hữu ích để debug khi không có màn hình 3D
         """
+        from src.environment.grid_world import CellType
+
+        g = self.grid
         fig, ax = plt.subplots(figsize=(10, 8))
 
-        # Lấy lát cắt tại z_level
-        slice_2d = self.world.grid[:, :, z_level].T  # Transpose để Y lên trên
+        color_map = {
+            CellType.FREE:        'white',
+            CellType.OBSTACLE:    'red',
+            CellType.NO_FLY_ZONE: 'orange',
+            CellType.START:       'green',
+            CellType.GOAL:        'blue',
+        }
 
-        # Tạo colormap
-        import matplotlib.colors as mcolors
-        cmap = mcolors.ListedColormap(['white', 'red', 'orange', 'lime', 'dodgerblue'])
-        bounds = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5]
-        norm = mcolors.BoundaryNorm(bounds, cmap.N)
+        for x in range(g.width):
+            for y in range(g.height):
+                ct = CellType(g.grid[x, y, z_level])
+                rect = plt.Rectangle((x, y), 1, 1,
+                                     facecolor=color_map[ct],
+                                     edgecolor='lightgray', linewidth=0.3)
+                ax.add_patch(rect)
 
-        ax.imshow(slice_2d, cmap=cmap, norm=norm, origin='lower')
-
-        # Vẽ đường bay trên lát cắt này
+        # Vẽ đường bay trên lát cắt
         if path:
-            path_on_slice = [(p[0], p[1]) for p in path if p[2] == z_level]
-            if path_on_slice:
-                px = [p[0] for p in path_on_slice]
-                py = [p[1] for p in path_on_slice]
-                ax.plot(px, py, 'b-o', linewidth=2, markersize=4, label='Đường bay')
+            path_z = [(p[0]+0.5, p[1]+0.5) for p in path if p[2] == z_level]
+            if len(path_z) > 1:
+                xs, ys = zip(*path_z)
+                ax.plot(xs, ys, 'y-o', linewidth=2, markersize=4, label='Path')
 
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_title(f'{title} (z = {z_level})')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+        ax.set_xlim(0, g.width)
+        ax.set_ylim(0, g.height)
+        ax.set_aspect('equal')
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_title(f"{self.title} — Slice z={z_level}")
 
-        plt.tight_layout()
-        plt.show()
+        if save_path:
+            plt.savefig(save_path, dpi=120, bbox_inches='tight')
+        if show:
+            plt.tight_layout()
+            plt.show()
+        plt.close(fig)
