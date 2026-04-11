@@ -1,81 +1,65 @@
-# Tác tử Lập kế hoạch Đường bay Tối ưu cho UAV
-## UAV Optimal Flight Path Planning Agent
+# UAV Flight Planning Agent
+**Đồ án Trí tuệ Nhân tạo — PTIT**
 
-**Đồ án môn Trí tuệ Nhân tạo - Học viện Công nghệ Bưu chính Viễn thông (PTIT)**
+Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D, tích hợp đầy đủ **9/9 chương lý thuyết TTNT**.
 
-## Mô tả
+---
 
-Xây dựng một Tác tử thông minh (Intelligent Agent) có khả năng lập kế hoạch 
-đường bay tối ưu cho UAV trong môi trường 3D có chướng ngại vật, điều kiện 
-thời tiết thay đổi, và ràng buộc về năng lượng.
+## Tính năng
 
-Dự án tích hợp toàn diện **9/9 chương** lý thuyết Trí tuệ Nhân tạo:
-
-| Chương | Lý thuyết | Module |
-|--------|-----------|--------|
-| Ch1 | Introduction to AI | Triết lý thiết kế: Acting Rationally |
-| Ch2 | Intelligent Agents | PEAS Framework, Learning Agent Architecture |
-| Ch3 | Solving Problems by Searching | Graph-Search, State Space |
-| Ch4 | Informed Search | A* Search, Heuristic, GA, SA |
-| Ch5 | Logical Agent | KB-Agent, TELL/ASK, Propositional Logic |
-| Ch6 | First-Order Logic | FOL Rules, Predicates, Quantifiers |
-| Ch7 | Quantifying Uncertainty | Bayes' Rule, MEU, Decision Theory |
-| Ch8 | Probabilistic Reasoning | Bayesian Network, CPT, Inference |
-| Ch9 | Learning from Examples | Decision Tree, Regression, Q-Learning |
-
-## Kiến trúc hệ thống
-
-```
-SENSORS → KNOWLEDGE BASE → DECISION ENGINE → LEARNING → ACTUATORS
-  GPS       FOL Rules         A* Search        Critic     Motor
-  LIDAR     Logic Rules       GA/SA            DT/RL      Direction
-  Wind      Bayesian Net      MEU              Update     Speed
-```
+| Module | Lý thuyết | Chức năng |
+|--------|-----------|-----------|
+| `environment` | Ch2, Ch3 | GridWorld3D, Obstacle management |
+| `search` | Ch3, Ch4 | BFS, DFS, A*, Greedy BFS, Heuristics |
+| `optimizer` | Ch4 | Simulated Annealing, Genetic Algorithm |
+| `knowledge` | Ch5, Ch6 | KB-Agent TELL/ASK, Propositional Logic, FOL |
+| `bayesian` | Ch7, Ch8 | Bayesian Network, Sensor Fusion, MEU |
+| `learning` | Ch9 | Decision Tree, Regression, Q-Learning |
+| `agent` | Ch2 | UAVAgent — tích hợp PERCEIVE→REASON→PLAN→ACT→LEARN |
 
 ## Cài đặt
 
 ```bash
-# Clone repo
-git clone https://github.com/USERNAME/uav-flight-planning.git
-cd uav-flight-planning
-
-# Tạo virtual environment (khuyến nghị)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
-
-# Cài đặt thư viện
-pip install -r requirements.txt
+pip install scikit-learn matplotlib numpy
 ```
 
-## Chạy
+## Chạy demo
 
 ```bash
-# Chạy chương trình chính
 python main.py
+```
 
-# Chạy tests
+## Chạy tests
+
+```bash
 python -m pytest tests/ -v
 ```
 
-## Cấu trúc dự án
+Kết quả: **175/175 tests PASS**
+
+## Kết quả thực nghiệm
+
+- A* tìm đường optimal (cost 35.5) trong 34ms
+- Q-Learning đạt cost = A* sau 800 episodes (ratio 1.00x)
+- Decision Tree accuracy: **89.1%**
+- Regression R²: **0.9927**
+
+## Cấu trúc
 
 ```
-uav-flight-planning/
-├── src/
-│   ├── environment/    # Môi trường mô phỏng 3D (Ch2, Ch3)
-│   ├── search/         # Thuật toán tìm kiếm (Ch3, Ch4)
-│   ├── optimizer/      # GA, SA tối ưu hóa (Ch4)
-│   ├── knowledge/      # KB-Agent, Logic (Ch5, Ch6)
-│   ├── bayesian/       # Bayesian Network, MEU (Ch7, Ch8)
-│   ├── learning/       # Machine Learning (Ch9)
-│   └── agent/          # Tích hợp UAV Agent
-├── tests/              # Unit tests
-├── configs/            # File cấu hình
-├── docs/               # Tài liệu, báo cáo
-└── assets/             # Bản đồ, hình ảnh
+src/
+├── environment/    GridWorld3D (15×15×6), Obstacles
+├── search/         A*, SA, GA, BFS, DFS, Heuristics
+├── optimizer/      SA, GA
+├── knowledge/      KB-Agent, FOL
+├── bayesian/       BN, MEU, Sensor Fusion
+├── learning/       DT, Regression, Q-Learning
+└── agent/          UAVAgent (tích hợp)
+tests/              175 unit tests
+docs/               Báo cáo + Mapping lý thuyết
+main.py             5 demo scenarios
 ```
 
-## GVHD
+## GitHub
 
-**Cô Hai Thị Tuyết Nguyên** - Học viện Công nghệ Bưu chính Viễn thông
+Repository: [UAV-FLIGHT-PLANNING-](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-)
