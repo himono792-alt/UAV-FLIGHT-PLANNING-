@@ -1,0 +1,111 @@
+# ============================================================
+# CẤU HÌNH MẶC ĐỊNH - UAV Flight Path Planning Agent
+# ============================================================
+# Đọc bởi: GridWorld3D.load_from_config()
+# Dùng cho: Demo và testing
+
+# --- MÔI TRƯỜNG ---
+environment:
+  size:
+    width: 20    # Chiều rộng (trục X)
+    height: 20   # Chiều dài (trục Y)
+    depth: 10    # Chiều cao (trục Z)
+
+  # Điểm xuất phát (Initial State - Ch3)
+  start:
+    x: 0
+    y: 0
+    z: 2
+
+  # Điểm đích (Goal State - Ch3)
+  goal:
+    x: 18
+    y: 18
+    z: 5
+
+  # Chướng ngại vật (Obstacles ↔ Pit trong Wumpus World - Ch5)
+  obstacles:
+    - {x: 5, y: 5, z: 0, sx: 3, sy: 3, sz: 6, name: "Tòa nhà A"}
+    - {x: 10, y: 3, z: 0, sx: 2, sy: 4, sz: 8, name: "Tòa nhà B"}
+    - {x: 8, y: 12, z: 0, sx: 4, sy: 2, sz: 5, name: "Tòa nhà C"}
+    - {x: 14, y: 8, z: 0, sx: 2, sy: 3, sz: 7, name: "Tháp viễn thông"}
+    - {x: 3, y: 14, z: 0, sx: 3, sy: 3, sz: 4, name: "Khu cây xanh"}
+
+  # Vùng cấm bay (No-Fly Zone ↔ Wumpus trong Wumpus World - Ch5)
+  no_fly_zones:
+    - {x: 12, y: 12, z: 0, sx: 4, sy: 4, sz: 10, name: "Khu quân sự"}
+    - {x: 16, y: 0, z: 0, sx: 4, sy: 3, sz: 10, name: "Sân bay nhỏ"}
+
+  # Gió (Stochastic environment - Ch2)
+  wind:
+    x: 0.5    # Gió thổi theo hướng X+
+    y: -0.3   # Gió thổi theo hướng Y-
+    z: 0.0
+
+# --- UAV AGENT (PEAS - Ch2) ---
+agent:
+  # Performance Measure
+  performance:
+    weight_distance: 1.0      # Trọng số khoảng cách
+    weight_energy: 0.8        # Trọng số năng lượng
+    weight_safety: 2.0        # Trọng số an toàn (ưu tiên cao nhất)
+    weight_time: 0.5          # Trọng số thời gian
+
+  # Sensors
+  sensors:
+    gps_accuracy: 2.0         # Sai số GPS (mét)
+    lidar_range: 5             # Phạm vi LIDAR (ô)
+    wind_sensor: true
+    battery_sensor: true
+
+  # Battery
+  battery:
+    capacity: 100.0            # Dung lượng pin (%)
+    consumption_rate: 0.5      # Tốc độ tiêu thụ (%/bước)
+    climb_multiplier: 1.5      # Nhân khi leo cao
+    low_threshold: 20.0        # Ngưỡng pin yếu (%)
+    critical_threshold: 10.0   # Ngưỡng pin nguy hiểm (%)
+
+# --- THUẬT TOÁN TÌM KIẾM (Ch3, Ch4) ---
+search:
+  algorithm: "a_star"          # Mặc định dùng A*
+  heuristic: "euclidean_3d"    # Heuristic mặc định
+  use_26_directions: false     # true = 26 hướng, false = 6 hướng
+  max_iterations: 100000       # Giới hạn số node expand
+
+# --- TỐI ƯU HÓA (Ch4) ---
+optimizer:
+  # Simulated Annealing
+  sa:
+    initial_temp: 100.0
+    cooling_rate: 0.995
+    min_temp: 0.01
+    max_iterations: 5000
+
+  # Genetic Algorithm
+  ga:
+    population_size: 50
+    generations: 200
+    crossover_rate: 0.8
+    mutation_rate: 0.1
+    tournament_size: 5
+
+# --- BAYESIAN NETWORK (Ch7, Ch8) ---
+bayesian:
+  # Utility function (Ch7)
+  utility:
+    reach_goal_safe: 100
+    reach_goal_slow: 50
+    return_safe: 10
+    emergency_land: -20
+    collision: -1000
+    out_of_battery: -500
+
+# --- LEARNING (Ch9) ---
+learning:
+  # Q-Learning
+  rl:
+    learning_rate: 0.1
+    discount_factor: 0.95
+    epsilon: 0.1             # Exploration rate
+    episodes: 1000

@@ -1,0 +1,16 @@
+# === Core ===
+numpy>=1.24.0
+matplotlib>=3.7.0
+pyyaml>=6.0
+
+# === Visualization ===
+pygame>=2.5.0
+
+# === Bayesian Network (Giai đoạn 5) ===
+pgmpy>=0.0.21
+
+# === Machine Learning (Giai đoạn 6) ===
+scikit-learn>=1.3.0
+
+# === Testing ===
+pytest>=7.4.0
