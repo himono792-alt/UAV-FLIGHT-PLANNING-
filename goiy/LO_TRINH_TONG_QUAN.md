@@ -16,8 +16,8 @@
 | 0 | Khởi tạo Git + cấu trúc dự án | 1 | `main` — commit init | ✅ ff38981 |
 | 1 | Môi trường mô phỏng 3D (Ch2, Ch3) | 2-3 | `feat/environment` | ✅ cb378a7 |
 | 2 | A* Search + Heuristic (Ch3, Ch4) | 4-5 | `feat/search` | ✅ 21f1d08 |
-| 3 | GA / SA tối ưu hóa (Ch4) | 6-7 | `feat/optimizer` | ✅ pending commit |
-| 4 | KB-Agent + Logic Rules (Ch5, Ch6) | 8-9 | `feat/knowledge` | ⬜ |
+| 3 | GA / SA tối ưu hóa (Ch4) | 6-7 | `feat/optimizer` | ✅ a3b1c2c |
+| 4 | KB-Agent + Logic Rules (Ch5, Ch6) | 8-9 | `feat/knowledge` | ✅ pending commit |
 | 5 | Bayesian Network + MEU (Ch7, Ch8) | 10-11 | `feat/bayesian` | ⬜ |
 | 6 | Learning Module (Ch9) | 12-13 | `feat/learning` | ⬜ |
 | 7 | Tích hợp + Testing | 14-15 | `feat/integration` | ⬜ |
