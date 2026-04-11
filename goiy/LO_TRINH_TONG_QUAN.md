@@ -19,8 +19,8 @@
 | 3 | GA / SA tối ưu hóa (Ch4) | 6-7 | `feat/optimizer` | ✅ a3b1c2c |
 | 4 | KB-Agent + Logic Rules (Ch5, Ch6) | 8-9 | `feat/knowledge` | ✅ fa51248 |
 | 5 | Bayesian Network + MEU (Ch7, Ch8) | 10-11 | `feat/bayesian` | ✅ 0d6e1c9 |
-| 6 | Learning Module (Ch9) | 12-13 | `feat/learning` | ✅ pending commit |
-| 7 | Tích hợp + Testing | 14-15 | `feat/integration` | ⬜ |
+| 6 | Learning Module (Ch9) | 12-13 | `feat/learning` | ✅ 38d7620 |
+| 7 | Tích hợp + Testing | 14-15 | `feat/integration` | ✅ pending commit |
 | 8 | Báo cáo + Bảo vệ | 16 | `docs/report` | ⬜ |
 
 ---
