@@ -245,7 +245,7 @@ class TestFOL:
     def test_can_fly_obstacle(self):
         """CanFly: target là obstacle → False"""
         g = GridWorld3D(5, 5, 3)
-        g.add_obstacle_box((1, 0, 0), (1, 0, 0))
+        g.add_obstacle_box(1, 0, 0, 1, 0, 0)
         fol = FOLKnowledgeBase(g)
         fol.build_from_grid()
         assert fol.query_can_fly((0, 0, 0), (1, 0, 0)) is False
@@ -262,7 +262,7 @@ class TestFOL:
     def test_remove_predicate_obstacle(self):
         """remove_predicate → ô có thể Safe trở lại"""
         g = GridWorld3D(5, 5, 3)
-        g.add_obstacle_box((2, 2, 1), (2, 2, 1))
+        g.add_obstacle_box(2, 2, 1, 2, 2, 1)
         fol = FOLKnowledgeBase(g)
         fol.build_from_grid()
         assert fol.query_safe(2, 2, 1) is False
