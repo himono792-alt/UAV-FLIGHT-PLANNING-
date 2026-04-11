@@ -1,77 +1,114 @@
 """
-Các hàm heuristic cho tìm kiếm đường đi UAV.
-Ước lượng chi phí từ vị trí hiện tại đến đích.
-Chương 3: Các hàm heuristic admissible cho tìm kiếm informed.
+Heuristic functions cho A* Search
+Lý thuyết: Chương 4 (Admissible heuristic, Informed Search)
 """
 
+import math
 
-def euclidean_3d(current, goal):
+
+def euclidean_3d(node: tuple, goal: tuple) -> float:
     """
-    Heuristic khoảng cách Euclidean 3D.
+    Khoảng cách Euclidean 3D — Ch4: Admissible heuristic ✓
 
-    Ước lượng khoảng cách thẳng trong không gian 3D.
+    h(n) = sqrt((x2-x1)² + (y2-y1)² + (z2-z1)²)
 
-    Args:
-        current: Tọa độ hiện tại (x, y, z)
-        goal: Tọa độ đích (x, y, z)
-
-    Returns:
-        float: Khoảng cách Euclidean
+    Luôn admissible: đường chim bay là đường ngắn nhất có thể
+    → h(n) ≤ chi phí thực → A* đảm bảo optimal
     """
-    # TODO: Triển khai ở Giai đoạn 2
-    pass
+    dx = goal[0] - node[0]
+    dy = goal[1] - node[1]
+    dz = goal[2] - node[2]
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
 
 
-def manhattan_3d(current, goal):
+def manhattan_3d(node: tuple, goal: tuple) -> float:
     """
-    Heuristic khoảng cách Manhattan 3D.
+    Khoảng cách Manhattan 3D — Ch4: Admissible ✓ khi chỉ đi 6 hướng
 
-    Tổng các khoảng cách tuyệt đối trên từng chiều.
+    h(n) = |x2-x1| + |y2-y1| + |z2-z1|
 
-    Args:
-        current: Tọa độ hiện tại (x, y, z)
-        goal: Tọa độ đích (x, y, z)
-
-    Returns:
-        float: Khoảng cách Manhattan
+    Admissible khi không cho di chuyển chéo (DIRECTIONS_6).
+    Consistent (monotone): h(n) ≤ c(n,n') + h(n') → A* không cần re-expand
     """
-    # TODO: Triển khai ở Giai đoạn 2
-    pass
+    return (abs(goal[0] - node[0]) +
+            abs(goal[1] - node[1]) +
+            abs(goal[2] - node[2]))
 
 
-def wind_adjusted(current, goal, wind_vector):
+def wind_adjusted(node: tuple, goal: tuple,
+                  wind_vector: tuple = (0.0, 0.0, 0.0)) -> float:
     """
-    Heuristic điều chỉnh theo gió.
+    Heuristic có tính gió — domain-specific cho UAV
 
-    Tính toán chi phí di chuyển xét đến ảnh hưởng của gió.
-    Gió cản sẽ làm tăng chi phí, gió thuận sẽ giảm.
+    Bay xuôi gió: giảm chi phí ước lượng
+    Bay ngược gió: tăng chi phí ước lượng
 
-    Args:
-        current: Tọa độ hiện tại (x, y, z)
-        goal: Tọa độ đích (x, y, z)
-        wind_vector: Vector gió (vx, vy, vz)
+    Công thức:
+        base = euclidean_3d(node, goal)
+        direction = normalize(goal - node)
+        wind_effect = dot(direction, wind_vector)   ∈ [-1, 1]
+        h = base / (1 + max(wind_effect, 0))
 
-    Returns:
-        float: Chi phí di chuyển điều chỉnh theo gió
+    Lưu ý: chỉ giảm khi xuôi gió, không tăng quá để giữ admissibility
     """
-    # TODO: Triển khai ở Giai đoạn 2
-    pass
+    base = euclidean_3d(node, goal)
+    if base < 1e-9:
+        return 0.0
+
+    # Vector hướng bay từ node đến goal (normalize)
+    dx = (goal[0] - node[0]) / base
+    dy = (goal[1] - node[1]) / base
+    dz = (goal[2] - node[2]) / base
+
+    # Dot product với wind_vector
+    wind_effect = dx * wind_vector[0] + dy * wind_vector[1] + dz * wind_vector[2]
+
+    # Chỉ giảm khi xuôi gió (wind_effect > 0), giữ admissibility
+    divisor = 1.0 + max(wind_effect, 0.0) * 0.3
+    return base / divisor
 
 
-def energy_based(current, goal, altitude_cost=1.0):
+def energy_based(node: tuple, goal: tuple,
+                 climb_penalty: float = 1.5) -> float:
     """
-    Heuristic dựa trên năng lượng tiêu thụ.
+    Heuristic tính năng lượng — Leo cao tốn hơn bay ngang
 
-    Tính toán chi phí năng lượng dự kiến với trọng số cho độ cao.
-    Di chuyển lên cao hơn tiêu thụ nhiều năng lượng hơn.
+    Công thức:
+        horizontal = euclidean_2d(node, goal)
+        vertical   = |z_goal - z_node| * climb_penalty
+        h = horizontal + vertical  (khi goal cao hơn node)
+        h = horizontal             (khi goal thấp hơn — lượn xuống dễ)
 
-    Args:
-        current: Tọa độ hiện tại (x, y, z)
-        goal: Tọa độ đích (x, y, z)
-        altitude_cost: Hệ số chi phí cho độ cao (default: 1.0)
-
-    Returns:
-        float: Chi phí năng lượng dự kiến
+    Phản ánh thực tế: UAV tốn nhiều năng lượng khi tăng độ cao
+    Admissibility: phụ thuộc climb_penalty — nên ≤ actual climb cost
     """
-    # TODO: Triển khai ở Giai đoạn 2
-    pass
+    dx = goal[0] - node[0]
+    dy = goal[1] - node[1]
+    dz = goal[2] - node[2]
+
+    horizontal = math.sqrt(dx * dx + dy * dy)
+
+    # Chỉ tính penalty khi leo cao (dz > 0)
+    vertical = max(dz, 0) * (climb_penalty - 1.0)
+
+    return horizontal + abs(dz) + vertical
+
+
+def zero_heuristic(node: tuple, goal: tuple) -> float:
+    """
+    h(n) = 0 — A* thoái hóa thành Dijkstra
+
+    Luôn admissible (h=0 ≤ mọi chi phí thực)
+    Dùng để benchmark: optimal nhưng chậm nhất trong informed search
+    """
+    return 0.0
+
+
+# Dict tiện dùng: tên → hàm
+HEURISTICS = {
+    "euclidean": euclidean_3d,
+    "manhattan": manhattan_3d,
+    "wind":      wind_adjusted,
+    "energy":    energy_based,
+    "zero":      zero_heuristic,
+}
