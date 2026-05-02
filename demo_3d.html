@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>UAV Flight Planning – Demo 3D</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a1a; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+  #canvas { display: block; }
+
+  #ui {
+    position: fixed; top: 16px; left: 16px; z-index: 10;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .panel {
+    background: rgba(10,20,40,0.85);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 10px; padding: 14px 18px;
+    color: #cce8ff; min-width: 220px;
+    backdrop-filter: blur(6px);
+  }
+  .panel h3 { color: #00d4ff; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 4px 0; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  #info {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    background: rgba(10,20,40,0.85);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 10px; padding: 14px 18px;
+    color: #cce8ff; min-width: 200px;
+    backdrop-filter: blur(6px);
+  }
+  #info h2 { color: #00d4ff; font-size: 15px; margin-bottom: 6px; }
+  #info p { font-size: 12px; opacity: 0.8; line-height: 1.6; }
+
+  #controls-bar {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 10;
+  }
+  button {
+    background: rgba(0,180,255,0.15);
+    border: 1px solid rgba(0,180,255,0.5);
+    color: #00d4ff; border-radius: 8px;
+    padding: 8px 18px; cursor: pointer; font-size: 13px;
+    transition: all 0.2s;
+  }
+  button:hover { background: rgba(0,180,255,0.35); }
+  button.active { background: rgba(0,180,255,0.4); border-color: #00d4ff; }
+
+  #stats {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 20px; z-index: 10;
+  }
+  .stat-box {
+    background: rgba(10,20,40,0.85);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 8px; padding: 8px 16px;
+    color: #cce8ff; text-align: center; font-size: 11px;
+    backdrop-filter: blur(6px);
+  }
+  .stat-box span { display: block; font-size: 20px; font-weight: bold; color: #00d4ff; }
+
+  #step-info {
+    position: fixed; bottom: 115px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,20,40,0.85);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 8px; padding: 8px 20px;
+    color: #00d4ff; font-size: 13px; z-index: 10;
+    backdrop-filter: blur(6px); white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<!-- UI Left -->
+<div id="ui">
+  <div class="panel">
+    <h3>🗺 Môi trường 3D</h3>
+    <div class="legend-item"><div class="dot" style="background:#00ff88"></div> Start (0,0,0)</div>
+    <div class="legend-item"><div class="dot" style="background:#ff4466"></div> Goal (4,4,2)</div>
+    <div class="legend-item"><div class="dot" style="background:#ff6622"></div> Obstacles / NFZ</div>
+    <div class="legend-item"><div class="dot" style="background:#0088ff"></div> A* Path</div>
+    <div class="legend-item"><div class="dot" style="background:#ffcc00"></div> UAV Agent</div>
+    <div class="legend-item"><div class="dot" style="background:#444466"></div> Grid Cell</div>
+  </div>
+  <div class="panel">
+    <h3>🧠 Thuật toán</h3>
+    <div style="font-size:12px; line-height:1.8">
+      <div>f(n) = g(n) + h(n)</div>
+      <div style="color:#00d4ff">h = Euclidean 3D</div>
+      <div style="margin-top:6px; color:#aaa">State Space: 5×5×3 = 75 nodes</div>
+      <div>Optimal path: <b id="path-len" style="color:#00ff88">–</b> bước</div>
+      <div>Cost: <b id="path-cost" style="color:#ffcc00">–</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- Info Right -->
+<div id="info">
+  <h2>UAV Flight Planning</h2>
+  <p>
+    🎓 Đồ án TTNT – PTIT<br>
+    📚 9 Chương AIMA<br><br>
+    🖱 Drag: Xoay camera<br>
+    🖱 Scroll: Zoom<br>
+    ⌨ R: Reset camera
+  </p>
+</div>
+
+<!-- Stats -->
+<div id="stats">
+  <div class="stat-box"><span id="s-nodes">75</span>Nodes</div>
+  <div class="stat-box"><span id="s-obstacles">8</span>Obstacles</div>
+  <div class="stat-box"><span id="s-path">–</span>Path Steps</div>
+  <div class="stat-box"><span id="s-time">–</span>Search Time</div>
+</div>
+
+<!-- Step Info -->
+<div id="step-info">▶ Nhấn "Tìm đường A*" để bắt đầu</div>
+
+<!-- Controls -->
+<div id="controls-bar">
+  <button onclick="runAstar()">🔍 Tìm đường A*</button>
+  <button onclick="animateUAV()" id="btn-fly">✈ Bay UAV</button>
+  <button onclick="toggleObstacles()">🧱 Thêm NFZ</button>
+  <button onclick="resetScene()">↺ Reset</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===================== THREE.JS SETUP =====================
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setPixelRatio(window.devicePixelRatio);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050510);
+scene.fog = new THREE.Fog(0x050510, 30, 60);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(12, 10, 12);
+camera.lookAt(4, 2, 4);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x223344, 0.8);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0x4488ff, 1.2);
+dirLight.position.set(10, 20, 10);
+dirLight.castShadow = true;
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0x00d4ff, 2, 20);
+pointLight.position.set(4, 6, 4);
+scene.add(pointLight);
+
+// ===================== GRID WORLD 5x5x3 =====================
+const GRID_W = 5, GRID_H = 5, GRID_Z = 3;
+const CELL = 2.0; // cell size
+const OFFSET = { x: 0, y: 0, z: 0 };
+
+function cellPos(x, y, z) {
+  return new THREE.Vector3(x * CELL, z * CELL, y * CELL);
+}
+
+// Grid lines (floor)
+const gridHelper = new THREE.GridHelper(GRID_W * CELL, GRID_W, 0x1a2a4a, 0x0d1a30);
+gridHelper.position.set((GRID_W - 1) * CELL / 2, -CELL * 0.5, (GRID_H - 1) * CELL / 2);
+scene.add(gridHelper);
+
+// Draw faint cell boxes
+const cellGeo = new THREE.BoxGeometry(CELL * 0.92, CELL * 0.92, CELL * 0.92);
+const cellMat = new THREE.MeshBasicMaterial({ color: 0x1a2a4a, wireframe: true, transparent: true, opacity: 0.15 });
+
+const cellMeshes = {};
+for (let x = 0; x < GRID_W; x++) {
+  for (let y = 0; y < GRID_H; y++) {
+    for (let z = 0; z < GRID_Z; z++) {
+      const m = new THREE.Mesh(cellGeo, cellMat.clone());
+      m.position.copy(cellPos(x, y, z));
+      scene.add(m);
+      cellMeshes[`${x},${y},${z}`] = m;
+    }
+  }
+}
+
+// ===================== OBSTACLES =====================
+let obstacleSet = new Set();
+let obstacleMeshes = [];
+
+function addObstacle(x, y, z, color = 0xff4422) {
+  const key = `${x},${y},${z}`;
+  if (obstacleSet.has(key)) return;
+  obstacleSet.add(key);
+
+  const geo = new THREE.BoxGeometry(CELL * 0.88, CELL * 0.88, CELL * 0.88);
+  const mat = new THREE.MeshPhongMaterial({
+    color, transparent: true, opacity: 0.85,
+    shininess: 80
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(cellPos(x, y, z));
+  mesh.castShadow = true;
+  scene.add(mesh);
+  obstacleMeshes.push(mesh);
+
+  // Edge outline
+  const edges = new THREE.EdgesGeometry(geo);
+  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff8855, opacity: 0.6, transparent: true }));
+  line.position.copy(cellPos(x, y, z));
+  scene.add(line);
+  obstacleMeshes.push(line);
+}
+
+// Default obstacles (column + spread)
+const defaultObstacles = [
+  [2, 2, 0], [2, 2, 1], [2, 2, 2],  // column
+  [1, 3, 0], [3, 1, 0],              // floor level
+  [0, 4, 1], [4, 0, 1],              // mid level
+  [3, 3, 1],                         // extra
+];
+
+function loadDefaultObstacles() {
+  defaultObstacles.forEach(([x, y, z]) => addObstacle(x, y, z));
+  document.getElementById('s-obstacles').textContent = obstacleSet.size;
+}
+loadDefaultObstacles();
+
+// ===================== START & GOAL =====================
+function makeMarker(color, pos, label) {
+  const geo = new THREE.SphereGeometry(0.35, 16, 16);
+  const mat = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.4, shininess: 100 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos);
+  scene.add(mesh);
+
+  // Glow ring
+  const ringGeo = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(pos);
+  ring.rotation.x = Math.PI / 2;
+  scene.add(ring);
+  return { mesh, ring };
+}
+
+const startPos = cellPos(0, 0, 0);
+const goalPos = cellPos(4, 4, 2);
+makeMarker(0x00ff88, startPos, 'Start');
+makeMarker(0xff4466, goalPos, 'Goal');
+
+// ===================== A* SEARCH =====================
+function heuristic(a, b) {
+  return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
+}
+
+function getNeighbors(x, y, z) {
+  const dirs = [
+    [1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1],
+    [1,1,0],[-1,-1,0],[1,-1,0],[-1,1,0],
+    [1,0,1],[-1,0,1],[0,1,1],[0,-1,1],
+    [1,0,-1],[-1,0,-1],[0,1,-1],[0,-1,-1],
+  ];
+  const result = [];
+  for (const [dx, dy, dz] of dirs) {
+    const nx = x+dx, ny = y+dy, nz = z+dz;
+    if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H || nz < 0 || nz >= GRID_Z) continue;
+    if (obstacleSet.has(`${nx},${ny},${nz}`)) continue;
+    const cost = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    result.push({ pos: [nx, ny, nz], cost });
+  }
+  return result;
+}
+
+class MinHeap {
+  constructor() { this.heap = []; }
+  push(item) {
+    this.heap.push(item);
+    this._bubbleUp(this.heap.length - 1);
+  }
+  pop() {
+    const top = this.heap[0];
+    const last = this.heap.pop();
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this._sinkDown(0);
+    }
+    return top;
+  }
+  get size() { return this.heap.length; }
+  _bubbleUp(i) {
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (this.heap[p][0] <= this.heap[i][0]) break;
+      [this.heap[p], this.heap[i]] = [this.heap[i], this.heap[p]];
+      i = p;
+    }
+  }
+  _sinkDown(i) {
+    while (true) {
+      let best = i, l = 2*i+1, r = 2*i+2;
+      if (l < this.heap.length && this.heap[l][0] < this.heap[best][0]) best = l;
+      if (r < this.heap.length && this.heap[r][0] < this.heap[best][0]) best = r;
+      if (best === i) break;
+      [this.heap[i], this.heap[best]] = [this.heap[best], this.heap[i]];
+      i = best;
+    }
+  }
+}
+
+let foundPath = null;
+let pathMeshes = [];
+
+function runAstar() {
+  const t0 = performance.now();
+  const start = [0, 0, 0], goal = [4, 4, 2];
+  const open = new MinHeap();
+  const gScore = {};
+  const cameFrom = {};
+  const key = p => p.join(',');
+
+  gScore[key(start)] = 0;
+  open.push([heuristic(start, goal), start]);
+
+  while (open.size > 0) {
+    const [f, cur] = open.pop();
+    if (key(cur) === key(goal)) {
+      // Reconstruct path
+      const path = [];
+      let node = key(goal);
+      while (node) {
+        path.unshift(node.split(',').map(Number));
+        node = cameFrom[node];
+      }
+      const elapsed = (performance.now() - t0).toFixed(2);
+      drawPath(path);
+      foundPath = path;
+      document.getElementById('path-len').textContent = path.length;
+      document.getElementById('path-cost').textContent = gScore[key(goal)].toFixed(2);
+      document.getElementById('s-path').textContent = path.length;
+      document.getElementById('s-time').textContent = elapsed + 'ms';
+      document.getElementById('step-info').textContent = `✅ A* tìm được đường: ${path.length} bước, cost=${gScore[key(goal)].toFixed(2)} — Nhấn "Bay UAV" để xem animation`;
+      return true;
+    }
+    for (const { pos: nb, cost } of getNeighbors(...cur)) {
+      const ng = (gScore[key(cur)] || 0) + cost;
+      if (ng < (gScore[key(nb)] ?? Infinity)) {
+        gScore[key(nb)] = ng;
+        cameFrom[key(nb)] = key(cur);
+        open.push([ng + heuristic(nb, goal), nb]);
+      }
+    }
+  }
+  document.getElementById('step-info').textContent = '❌ Không tìm được đường! Thử xóa obstacles';
+  return false;
+}
+
+function drawPath(path) {
+  // Clear old
+  pathMeshes.forEach(m => scene.remove(m));
+  pathMeshes = [];
+
+  // Tube/line along path
+  const points = path.map(([x,y,z]) => cellPos(x, y, z));
+  const curve = new THREE.CatmullRomCurve3(points);
+  const tubeGeo = new THREE.TubeGeometry(curve, path.length * 4, 0.08, 8, false);
+  const tubeMat = new THREE.MeshBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.7 });
+  const tube = new THREE.Mesh(tubeGeo, tubeMat);
+  scene.add(tube);
+  pathMeshes.push(tube);
+
+  // Waypoint dots
+  path.forEach(([x, y, z], i) => {
+    if (i === 0 || i === path.length - 1) return;
+    const geo = new THREE.SphereGeometry(0.12, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x44aaff });
+    const m = new THREE.Mesh(geo, mat);
+    m.position.copy(cellPos(x, y, z));
+    scene.add(m);
+    pathMeshes.push(m);
+  });
+}
+
+// ===================== UAV MODEL =====================
+let uavGroup = null;
+let uavAnimating = false;
+let uavT = 0;
+let pathCurve = null;
+
+function makeUAV() {
+  if (uavGroup) scene.remove(uavGroup);
+  uavGroup = new THREE.Group();
+
+  // Body
+  const bodyGeo = new THREE.BoxGeometry(0.4, 0.12, 0.4);
+  const bodyMat = new THREE.MeshPhongMaterial({ color: 0xffcc00, shininess: 120 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  uavGroup.add(body);
+
+  // Arms
+  const armGeo = new THREE.BoxGeometry(0.7, 0.05, 0.08);
+  const armMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+  [-1, 1].forEach(sx => [-1, 1].forEach(sy => {
+    const arm = new THREE.Mesh(armGeo, armMat);
+    arm.position.set(sx * 0.15, 0, sy * 0.15);
+    arm.rotation.y = Math.PI / 4 * sx * sy;
+    uavGroup.add(arm);
+  }));
+
+  // Rotors
+  const rotorGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.02, 16);
+  const rotorMat = new THREE.MeshPhongMaterial({ color: 0x333333, transparent: true, opacity: 0.6 });
+  const rotorPositions = [[0.35, 0, 0.35], [-0.35, 0, 0.35], [0.35, 0, -0.35], [-0.35, 0, -0.35]];
+  rotorPositions.forEach(([rx, ry, rz]) => {
+    const rotor = new THREE.Mesh(rotorGeo, rotorMat);
+    rotor.position.set(rx, 0.08, rz);
+    uavGroup.add(rotor);
+  });
+
+  uavGroup.position.copy(cellPos(0, 0, 0));
+  scene.add(uavGroup);
+}
+
+function animateUAV() {
+  if (!foundPath || foundPath.length < 2) {
+    document.getElementById('step-info').textContent = '⚠ Hãy tìm đường A* trước!';
+    return;
+  }
+  if (uavAnimating) {
+    uavAnimating = false;
+    document.getElementById('btn-fly').textContent = '✈ Bay UAV';
+    return;
+  }
+  const points = foundPath.map(([x,y,z]) => cellPos(x, y, z));
+  pathCurve = new THREE.CatmullRomCurve3(points);
+  makeUAV();
+  uavT = 0;
+  uavAnimating = true;
+  document.getElementById('btn-fly').classList.add('active');
+  document.getElementById('btn-fly').textContent = '⏹ Dừng';
+}
+
+// ===================== NFZ TOGGLE =====================
+let nfzAdded = false;
+const nfzObstacles = [[0, 3, 2], [1, 4, 2], [4, 1, 2]];
+
+function toggleObstacles() {
+  if (!nfzAdded) {
+    nfzObstacles.forEach(([x,y,z]) => addObstacle(x, y, z, 0x8833ff));
+    nfzAdded = true;
+    document.getElementById('s-obstacles').textContent = obstacleSet.size;
+    document.getElementById('step-info').textContent = '🟣 Đã thêm No-Fly Zone (tím) — Tìm lại đường A*';
+    // Clear path
+    pathMeshes.forEach(m => scene.remove(m));
+    pathMeshes = [];
+    foundPath = null;
+    document.getElementById('path-len').textContent = '–';
+    document.getElementById('path-cost').textContent = '–';
+  } else {
+    // Remove NFZ meshes (just remove the last ones added)
+    nfzObstacles.forEach(([x,y,z]) => obstacleSet.delete(`${x},${y},${z}`));
+    // Remove all meshes and re-add defaults
+    obstacleMeshes.forEach(m => scene.remove(m));
+    obstacleMeshes = [];
+    obstacleSet = new Set();
+    loadDefaultObstacles();
+    nfzAdded = false;
+    document.getElementById('step-info').textContent = 'NFZ đã xóa — Tìm lại đường A*';
+    pathMeshes.forEach(m => scene.remove(m));
+    pathMeshes = [];
+    foundPath = null;
+  }
+}
+
+function resetScene() {
+  obstacleMeshes.forEach(m => scene.remove(m));
+  obstacleMeshes = [];
+  obstacleSet = new Set();
+  nfzAdded = false;
+  pathMeshes.forEach(m => scene.remove(m));
+  pathMeshes = [];
+  if (uavGroup) scene.remove(uavGroup);
+  uavAnimating = false;
+  foundPath = null;
+  uavT = 0;
+  document.getElementById('btn-fly').textContent = '✈ Bay UAV';
+  document.getElementById('btn-fly').classList.remove('active');
+  document.getElementById('path-len').textContent = '–';
+  document.getElementById('path-cost').textContent = '–';
+  document.getElementById('s-path').textContent = '–';
+  document.getElementById('s-time').textContent = '–';
+  document.getElementById('step-info').textContent = '↺ Reset xong — Nhấn "Tìm đường A*" để bắt đầu';
+  loadDefaultObstacles();
+}
+
+// ===================== CAMERA ORBIT =====================
+let isDragging = false, prevMouse = { x: 0, y: 0 };
+let theta = Math.PI / 4, phi = Math.PI / 4, radius = 20;
+const target = new THREE.Vector3(4, 2, 4);
+
+canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = (e.clientX - prevMouse.x) * 0.008;
+  const dy = (e.clientY - prevMouse.y) * 0.008;
+  theta -= dx;
+  phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, phi - dy));
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('wheel', e => {
+  radius = Math.max(6, Math.min(40, radius + e.deltaY * 0.02));
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R') {
+    theta = Math.PI / 4; phi = Math.PI / 4; radius = 20;
+  }
+});
+
+// ===================== ANIMATION LOOP =====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+
+  // Camera orbit
+  camera.position.x = target.x + radius * Math.sin(phi) * Math.sin(theta);
+  camera.position.y = target.y + radius * Math.cos(phi);
+  camera.position.z = target.z + radius * Math.sin(phi) * Math.cos(theta);
+  camera.lookAt(target);
+
+  // UAV flight
+  if (uavAnimating && pathCurve && uavGroup) {
+    uavT += dt * 0.12;
+    if (uavT >= 1) {
+      uavT = 0; // loop
+    }
+    const pos = pathCurve.getPoint(uavT);
+    uavGroup.position.lerp(pos, 0.12);
+
+    // Face direction of travel
+    if (uavT + 0.01 < 1) {
+      const ahead = pathCurve.getPoint(uavT + 0.01);
+      uavGroup.lookAt(ahead);
+    }
+
+    // Spin rotors (simulate)
+    uavGroup.children.slice(2).forEach((r, i) => {
+      r.rotation.y += (i % 2 === 0 ? 1 : -1) * dt * 15;
+    });
+
+    const step = Math.floor(uavT * (foundPath.length - 1));
+    const [cx, cy, cz] = foundPath[Math.min(step, foundPath.length - 1)];
+    document.getElementById('step-info').textContent =
+      `✈ UAV đang bay → Step ${step + 1}/${foundPath.length} | Vị trí: (${cx}, ${cy}, ${cz})`;
+  }
+
+  // Pulse start/goal
+  const t = clock.getElapsedTime();
+  pointLight.intensity = 1.5 + Math.sin(t * 2) * 0.5;
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>
