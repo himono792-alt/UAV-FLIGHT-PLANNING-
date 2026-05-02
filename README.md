@@ -10,6 +10,18 @@ Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D,
 
 ---
 
+## 🚀 Live Demo
+
+| Demo | Mô tả | Cách chạy |
+|---|---|---|
+| 🌐 **3D Web Demo** | Mô phỏng UAV bay 3D trên browser, có UI sci-fi xanh dương | **[Mở ngay](https://himono792-alt.github.io/UAV-FLIGHT-PLANNING-/demo_3d.html)** (Three.js, không cần cài đặt) |
+| 📊 **Visualize Local** | 4 scenario A* tìm đường, render matplotlib 3D xoay được | `python demo_visualize.py` |
+| 💻 **CLI Demo** | 5 kịch bản agent đầy đủ (gió, pin yếu, obstacle, replan) | `python main.py` |
+
+📖 **[Hướng dẫn chi tiết các demo →](docs/demo_guide.md)**
+
+---
+
 ## Quick Start
 
 ```bash
@@ -99,9 +111,12 @@ UAV-FLIGHT-PLANNING/
 ├── tests/              193 unit tests + integration tests
 ├── docs/
 │   ├── bao_cao.md           Báo cáo đồ án
-│   └── mapping_ly_thuyet.md Mapping với chương trình PTIT
+│   ├── mapping_ly_thuyet.md Mapping với chương trình PTIT
+│   └── demo_guide.md        Hướng dẫn chi tiết 3 demo
 ├── configs/            Cấu hình mặc định (default_config.yaml)
-├── main.py             Entry point — 5 demo scenarios
+├── main.py             Entry point — 5 demo scenarios CLI
+├── demo_visualize.py   Demo matplotlib 3D — 4 scenarios A*
+├── demo_3d.html        Demo 3D web Three.js (mở GitHub Pages)
 └── requirements.txt    Dependencies
 ```
 
