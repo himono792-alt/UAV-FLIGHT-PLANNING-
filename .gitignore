@@ -24,6 +24,9 @@ env/
 .DS_Store
 Thumbs.db
 
+# Pytest
+.pytest_cache/
+
 # Logs
 *.log
 
@@ -37,3 +40,26 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Tài liệu giáo trình PDF (quá nặng, không push)
+TTNT*.pdf
+
+# File riêng tư / private notes
+CLAUDE.md
+De_xuat_Do_an_UAV_Flight_Planning.md
+Quy_trinh_lam_viec_UAV.md
+install_gd1.py
+
+# Bản trùng lặp / skeleton local
+uav-flight-planning/
+
+# Goiy private notes (chỉ giữ LO_TRINH_TONG_QUAN.md trên repo)
+goiy/00_*.md
+goiy/02_*.md
+goiy/03_*.md
+goiy/04_*.md
+goiy/05_*.md
+goiy/06_*.md
+goiy/07_*.md
+goiy/08_*.md
+goiy/09_*.md

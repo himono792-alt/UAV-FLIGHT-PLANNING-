@@ -1,9 +1,23 @@
 # UAV Flight Planning Agent
+
 **Đồ án Trí tuệ Nhân tạo — PTIT**
 
 Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D, tích hợp đầy đủ **9/9 chương lý thuyết TTNT**.
 
+![Tests](https://img.shields.io/badge/tests-193%20passed-brightgreen)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 ---
+
+## Quick Start
+
+```bash
+git clone https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-.git
+cd UAV-FLIGHT-PLANNING-
+pip install -r requirements.txt
+python main.py
+```
 
 ## Tính năng
 
@@ -17,17 +31,41 @@ Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D,
 | `learning` | Ch9 | Decision Tree, Regression, Q-Learning |
 | `agent` | Ch2 | UAVAgent — tích hợp PERCEIVE→REASON→PLAN→ACT→LEARN |
 
-## Cài đặt
-
-```bash
-pip install scikit-learn matplotlib numpy
-```
-
 ## Chạy demo
 
 ```bash
 python main.py
 ```
+
+Output mẫu (5 kịch bản thử nghiệm):
+
+```
+============================================================
+  UAV FLIGHT PLANNING AGENT — Demo
+  Đồ án TTNT — PTIT
+============================================================
+
+  ✓ Scenario 1: Bay bình thường (gió 5 m/s, pin 100%)
+     [SUCCESS] reached=True | steps=1 | battery_used=23.6% | replans=1 | time=46.6ms
+
+  ✓ Scenario 2: Nhiều chướng ngại vật (25 obstacles)
+     [SUCCESS] reached=True | steps=1 | battery_used=23.6% | replans=1 | time=47.6ms
+
+  ✓ Scenario 3: Gió mạnh (22 m/s, BN+MEU quyết định)
+     [SUCCESS] reached=True | steps=1 | battery_used=23.6% | replans=1 | time=47.2ms
+
+  ✗ Scenario 4: Pin yếu (18%), KB→RETURN_HOME
+     [FAILED] reached=False | steps=1 | battery_used=18.0% | replans=1 | time=44.6ms
+
+  ✓ Scenario 5: Dynamic re-planning (obstacle giữa đường)
+     [SUCCESS] reached=True | steps=1 | battery_used=18.9% | replans=1 | time=38.1ms
+
+============================================================
+  Kết quả: 4/5 scenarios thành công
+============================================================
+```
+
+> Lưu ý: Scenario 4 báo "FAILED" là **hành vi đúng** — pin yếu nên KB-Agent ra quyết định quay về thay vì cố bay tiếp đến goal.
 
 ## Chạy tests
 
@@ -35,7 +73,9 @@ python main.py
 python -m pytest tests/ -v
 ```
 
-Kết quả: **175/175 tests PASS**
+Kết quả: **193/193 tests PASS** trong khoảng 8 giây.
+
+Test bao phủ đầy đủ các module: `test_bayesian`, `test_environment`, `test_integration`, `test_knowledge`, `test_learning`, `test_optimizer`, `test_search`.
 
 ## Kết quả thực nghiệm
 
@@ -44,22 +84,35 @@ Kết quả: **175/175 tests PASS**
 - Decision Tree accuracy: **89.1%**
 - Regression R²: **0.9927**
 
-## Cấu trúc
+## Cấu trúc dự án
 
 ```
-src/
-├── environment/    GridWorld3D (15×15×6), Obstacles
-├── search/         A*, SA, GA, BFS, DFS, Heuristics
-├── optimizer/      SA, GA
-├── knowledge/      KB-Agent, FOL
-├── bayesian/       BN, MEU, Sensor Fusion
-├── learning/       DT, Regression, Q-Learning
-└── agent/          UAVAgent (tích hợp)
-tests/              175 unit tests
-docs/               Báo cáo + Mapping lý thuyết
-main.py             5 demo scenarios
+UAV-FLIGHT-PLANNING/
+├── src/
+│   ├── environment/    GridWorld3D, Obstacles, Visualizer
+│   ├── search/         A*, BFS, DFS, Greedy BFS, Heuristics
+│   ├── optimizer/      Simulated Annealing, Genetic Algorithm
+│   ├── knowledge/      KB-Agent, Propositional, FOL
+│   ├── bayesian/       Bayesian Network, MEU, Inference
+│   ├── learning/       Decision Tree, Regression, Q-Learning
+│   └── agent/          UAVAgent (tích hợp đầy đủ pipeline)
+├── tests/              193 unit tests + integration tests
+├── docs/
+│   ├── bao_cao.md           Báo cáo đồ án
+│   └── mapping_ly_thuyet.md Mapping với chương trình PTIT
+├── configs/            Cấu hình mặc định (default_config.yaml)
+├── main.py             Entry point — 5 demo scenarios
+└── requirements.txt    Dependencies
 ```
 
-## GitHub
+## Yêu cầu môi trường
 
-Repository: [UAV-FLIGHT-PLANNING-](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-)
+- Python 3.10+
+- numpy ≥ 1.24
+- matplotlib ≥ 3.7
+- scikit-learn ≥ 1.3
+- pytest ≥ 7.4
+
+## License
+
+MIT License — xem file [LICENSE](LICENSE) để biết chi tiết.
