@@ -5,38 +5,142 @@
 <title>UAV Flight Planning – Demo 3D</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0a0a1a; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+  body { background: #0a0a1a; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #cce8ff; }
   #canvas { display: block; }
 
-  #ui {
-    position: fixed; top: 16px; left: 16px; z-index: 10;
-    display: flex; flex-direction: column; gap: 10px;
-  }
+  /* ============ Panels ============ */
   .panel {
     background: rgba(10,20,40,0.85);
     border: 1px solid rgba(0,200,255,0.3);
     border-radius: 10px; padding: 14px 18px;
-    color: #cce8ff; min-width: 220px;
     backdrop-filter: blur(6px);
+    margin-bottom: 10px;
   }
-  .panel h3 { color: #00d4ff; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .panel h3 {
+    color: #00d4ff; font-size: 12px; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+
+  /* Left UI */
+  #ui-left {
+    position: fixed; top: 16px; left: 16px; z-index: 10;
+    width: 240px; max-height: calc(100vh - 32px); overflow-y: auto;
+  }
+  #ui-left::-webkit-scrollbar { width: 4px; }
+  #ui-left::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.3); border-radius: 2px; }
+
   .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 4px 0; }
   .dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 
-  #info {
+  /* ============ Toggle Switches ============ */
+  .toggle-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; padding: 5px 0;
+  }
+  .toggle-row label { cursor: pointer; flex: 1; }
+  .switch {
+    position: relative; width: 36px; height: 18px;
+    background: rgba(0,200,255,0.15);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 18px; cursor: pointer;
+    transition: 0.2s;
+  }
+  .switch::after {
+    content: ''; position: absolute;
+    top: 1px; left: 1px;
+    width: 14px; height: 14px;
+    background: #aaa; border-radius: 50%;
+    transition: 0.2s;
+  }
+  .switch.on { background: rgba(0,200,255,0.5); border-color: #00d4ff; }
+  .switch.on::after { left: 19px; background: #00d4ff; box-shadow: 0 0 6px #00d4ff; }
+
+  /* ============ Slider ============ */
+  .slider-row { font-size: 12px; padding: 6px 0; }
+  .slider-row .slider-label {
+    display: flex; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .slider-row .slider-label b { color: #00d4ff; }
+  input[type="range"] {
+    width: 100%; height: 4px; -webkit-appearance: none;
+    background: rgba(0,200,255,0.2); border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    background: #00d4ff; border-radius: 50%; cursor: pointer;
+    box-shadow: 0 0 6px #00d4ff;
+  }
+
+  /* ============ Right UI ============ */
+  #ui-right {
     position: fixed; top: 16px; right: 16px; z-index: 10;
+    width: 220px;
+  }
+
+  /* ============ Battery Gauge ============ */
+  .battery-gauge {
+    position: relative; width: 180px; height: 180px;
+    margin: 0 auto;
+  }
+  .battery-gauge svg { transform: rotate(-90deg); }
+  .battery-text {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .battery-text .pct {
+    font-size: 32px; font-weight: bold;
+    background: linear-gradient(180deg, #00d4ff, #0088ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .battery-text .lbl {
+    font-size: 10px; opacity: 0.6;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .battery-status {
+    text-align: center; margin-top: 8px;
+    font-size: 11px;
+  }
+  .battery-status .v {
+    color: #00ff88; font-weight: bold;
+  }
+
+  /* ============ Stats Bar ============ */
+  #stats {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 12px; z-index: 10;
+  }
+  .stat-box {
     background: rgba(10,20,40,0.85);
     border: 1px solid rgba(0,200,255,0.3);
-    border-radius: 10px; padding: 14px 18px;
-    color: #cce8ff; min-width: 200px;
+    border-radius: 8px; padding: 8px 14px;
+    text-align: center; font-size: 10px;
     backdrop-filter: blur(6px);
+    min-width: 70px;
   }
-  #info h2 { color: #00d4ff; font-size: 15px; margin-bottom: 6px; }
-  #info p { font-size: 12px; opacity: 0.8; line-height: 1.6; }
+  .stat-box span {
+    display: block; font-size: 18px;
+    font-weight: bold; color: #00d4ff;
+  }
 
+  /* ============ Step Info ============ */
+  #step-info {
+    position: fixed; bottom: 125px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,20,40,0.85);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 8px; padding: 8px 20px;
+    color: #00d4ff; font-size: 13px; z-index: 10;
+    backdrop-filter: blur(6px); white-space: nowrap;
+    max-width: 80vw; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ============ Bottom Controls ============ */
   #controls-bar {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 10px; z-index: 10;
+    display: flex; gap: 10px; z-index: 10; flex-wrap: wrap; justify-content: center;
   }
   button {
     background: rgba(0,180,255,0.15);
@@ -44,93 +148,148 @@
     color: #00d4ff; border-radius: 8px;
     padding: 8px 18px; cursor: pointer; font-size: 13px;
     transition: all 0.2s;
+    font-family: inherit;
   }
-  button:hover { background: rgba(0,180,255,0.35); }
-  button.active { background: rgba(0,180,255,0.4); border-color: #00d4ff; }
-
-  #stats {
-    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 20px; z-index: 10;
-  }
-  .stat-box {
-    background: rgba(10,20,40,0.85);
-    border: 1px solid rgba(0,200,255,0.3);
-    border-radius: 8px; padding: 8px 16px;
-    color: #cce8ff; text-align: center; font-size: 11px;
-    backdrop-filter: blur(6px);
-  }
-  .stat-box span { display: block; font-size: 20px; font-weight: bold; color: #00d4ff; }
-
-  #step-info {
-    position: fixed; bottom: 115px; left: 50%; transform: translateX(-50%);
-    background: rgba(10,20,40,0.85);
-    border: 1px solid rgba(0,200,255,0.3);
-    border-radius: 8px; padding: 8px 20px;
-    color: #00d4ff; font-size: 13px; z-index: 10;
-    backdrop-filter: blur(6px); white-space: nowrap;
-  }
+  button:hover { background: rgba(0,180,255,0.35); transform: translateY(-1px); }
+  button.active { background: rgba(0,180,255,0.4); border-color: #00d4ff; box-shadow: 0 0 10px rgba(0,200,255,0.3); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.warn { border-color: rgba(255,140,0,0.5); color: #ffa500; }
+  button.danger { border-color: rgba(255,80,80,0.5); color: #ff6666; }
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 
-<!-- UI Left -->
-<div id="ui">
+<!-- ============ Left Panel: Legend + Algorithm ============ -->
+<div id="ui-left">
   <div class="panel">
     <h3>🗺 Môi trường 3D</h3>
     <div class="legend-item"><div class="dot" style="background:#00ff88"></div> Start (0,0,0)</div>
-    <div class="legend-item"><div class="dot" style="background:#ff4466"></div> Goal (4,4,2)</div>
-    <div class="legend-item"><div class="dot" style="background:#ff6622"></div> Obstacles / NFZ</div>
+    <div class="legend-item"><div class="dot" style="background:#ff4466"></div> Goal (11,11,4)</div>
+    <div class="legend-item"><div class="dot" style="background:#ff4422"></div> Obstacles</div>
+    <div class="legend-item"><div class="dot" style="background:#8833ff"></div> No-Fly Zone</div>
     <div class="legend-item"><div class="dot" style="background:#0088ff"></div> A* Path</div>
     <div class="legend-item"><div class="dot" style="background:#ffcc00"></div> UAV Agent</div>
-    <div class="legend-item"><div class="dot" style="background:#444466"></div> Grid Cell</div>
   </div>
+
   <div class="panel">
-    <h3>🧠 Thuật toán</h3>
+    <h3>⚙ Bật / Tắt môi trường</h3>
+    <div class="toggle-row">
+      <label for="t-obs">Obstacles</label>
+      <div class="switch on" id="t-obs" onclick="toggleSwitch('obstacles')"></div>
+    </div>
+    <div class="toggle-row">
+      <label for="t-nfz">No-Fly Zone</label>
+      <div class="switch" id="t-nfz" onclick="toggleSwitch('nfz')"></div>
+    </div>
+    <div class="toggle-row">
+      <label for="t-grid">Grid lines</label>
+      <div class="switch on" id="t-grid" onclick="toggleSwitch('grid')"></div>
+    </div>
+    <div class="toggle-row">
+      <label for="t-fog">Sương mù (fog)</label>
+      <div class="switch on" id="t-fog" onclick="toggleSwitch('fog')"></div>
+    </div>
+    <div class="toggle-row">
+      <label for="t-wind">Hiệu ứng gió</label>
+      <div class="switch" id="t-wind" onclick="toggleSwitch('wind')"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>🌬 Tham số</h3>
+    <div class="slider-row">
+      <div class="slider-label"><span>Tốc độ gió</span><b id="v-wind">5 m/s</b></div>
+      <input type="range" id="s-wind" min="0" max="25" value="5" oninput="onWindChange(this.value)">
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><span>Số obstacles</span><b id="v-obs-count">25</b></div>
+      <input type="range" id="s-obs" min="5" max="60" value="25" oninput="onObsCountChange(this.value)">
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>🧠 Thuật toán A*</h3>
     <div style="font-size:12px; line-height:1.8">
       <div>f(n) = g(n) + h(n)</div>
       <div style="color:#00d4ff">h = Euclidean 3D</div>
-      <div style="margin-top:6px; color:#aaa">State Space: 5×5×3 = 75 nodes</div>
-      <div>Optimal path: <b id="path-len" style="color:#00ff88">–</b> bước</div>
+      <div style="margin-top:6px; color:#aaa">State: 12×12×5 = 720 nodes</div>
+      <div>Path: <b id="path-len" style="color:#00ff88">–</b> bước</div>
       <div>Cost: <b id="path-cost" style="color:#ffcc00">–</b></div>
     </div>
   </div>
 </div>
 
-<!-- Info Right -->
-<div id="info">
-  <h2>UAV Flight Planning</h2>
-  <p>
+<!-- ============ Right Panel: Battery + Info ============ -->
+<div id="ui-right">
+  <div class="panel">
+    <h3>🔋 Pin UAV</h3>
+    <div class="battery-gauge">
+      <svg width="180" height="180" viewBox="0 0 180 180">
+        <circle cx="90" cy="90" r="75" fill="none" stroke="rgba(0,200,255,0.1)" stroke-width="14"/>
+        <circle cx="90" cy="90" r="75" fill="none" stroke="url(#batGrad)" stroke-width="14"
+                stroke-linecap="round" stroke-dasharray="471"
+                stroke-dashoffset="0" id="bat-circle"/>
+        <defs>
+          <linearGradient id="batGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#00ff88"/>
+            <stop offset="100%" stop-color="#00d4ff"/>
+          </linearGradient>
+          <linearGradient id="batGradLow" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ffaa00"/>
+            <stop offset="100%" stop-color="#ff6622"/>
+          </linearGradient>
+          <linearGradient id="batGradCrit" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff3333"/>
+            <stop offset="100%" stop-color="#ff6666"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="battery-text">
+        <div class="pct" id="bat-pct">100%</div>
+        <div class="lbl">Battery</div>
+      </div>
+    </div>
+    <div class="battery-status">
+      Trạng thái: <span class="v" id="bat-status">FULL</span>
+    </div>
+  </div>
+
+  <div class="panel" style="font-size:11px; line-height:1.6;">
+    <h3>ℹ Hướng dẫn</h3>
     🎓 Đồ án TTNT – PTIT<br>
-    📚 9 Chương AIMA<br><br>
-    🖱 Drag: Xoay camera<br>
-    🖱 Scroll: Zoom<br>
-    ⌨ R: Reset camera
-  </p>
+    🖱 Drag chuột: Xoay camera<br>
+    🖱 Scroll: Zoom in/out<br>
+    ⌨ R: Reset camera<br><br>
+    <span style="color:#aaa">Thử bật NFZ, tăng gió để xem agent thay đổi đường bay & tốc độ tiêu pin.</span>
+  </div>
 </div>
 
-<!-- Stats -->
+<!-- ============ Stats ============ -->
 <div id="stats">
-  <div class="stat-box"><span id="s-nodes">75</span>Nodes</div>
-  <div class="stat-box"><span id="s-obstacles">8</span>Obstacles</div>
-  <div class="stat-box"><span id="s-path">–</span>Path Steps</div>
-  <div class="stat-box"><span id="s-time">–</span>Search Time</div>
+  <div class="stat-box"><span id="s-nodes">720</span>Cells</div>
+  <div class="stat-box"><span id="s-obstacles">0</span>Blocks</div>
+  <div class="stat-box"><span id="s-path">–</span>Steps</div>
+  <div class="stat-box"><span id="s-time">–</span>Time</div>
+  <div class="stat-box"><span id="s-expanded">–</span>Expanded</div>
 </div>
 
-<!-- Step Info -->
+<!-- ============ Step Info ============ -->
 <div id="step-info">▶ Nhấn "Tìm đường A*" để bắt đầu</div>
 
-<!-- Controls -->
+<!-- ============ Bottom Controls ============ -->
 <div id="controls-bar">
   <button onclick="runAstar()">🔍 Tìm đường A*</button>
   <button onclick="animateUAV()" id="btn-fly">✈ Bay UAV</button>
-  <button onclick="toggleObstacles()">🧱 Thêm NFZ</button>
-  <button onclick="resetScene()">↺ Reset</button>
+  <button onclick="randomMap()" class="warn">🎲 Random Map</button>
+  <button onclick="resetScene()" class="danger">↺ Reset</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ===================== THREE.JS SETUP =====================
+// ============================================================
+//   THREE.JS SETUP
+// ============================================================
 const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -140,134 +299,254 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050510);
-scene.fog = new THREE.Fog(0x050510, 30, 60);
+let fogActive = true;
+const fogInst = new THREE.Fog(0x050510, 50, 120);
+scene.fog = fogInst;
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(12, 10, 12);
-camera.lookAt(4, 2, 4);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
 
 // Lighting
-const ambient = new THREE.AmbientLight(0x223344, 0.8);
+const ambient = new THREE.AmbientLight(0x223344, 0.7);
 scene.add(ambient);
 const dirLight = new THREE.DirectionalLight(0x4488ff, 1.2);
-dirLight.position.set(10, 20, 10);
-dirLight.castShadow = true;
+dirLight.position.set(20, 40, 20);
 scene.add(dirLight);
-const pointLight = new THREE.PointLight(0x00d4ff, 2, 20);
-pointLight.position.set(4, 6, 4);
+const pointLight = new THREE.PointLight(0x00d4ff, 2, 40);
 scene.add(pointLight);
 
-// ===================== GRID WORLD 5x5x3 =====================
-const GRID_W = 5, GRID_H = 5, GRID_Z = 3;
-const CELL = 2.0; // cell size
-const OFFSET = { x: 0, y: 0, z: 0 };
+// ============================================================
+//   GRID WORLD 12×12×5
+// ============================================================
+const GRID_W = 12, GRID_H = 12, GRID_Z = 5;
+const CELL = 1.5;
 
 function cellPos(x, y, z) {
   return new THREE.Vector3(x * CELL, z * CELL, y * CELL);
 }
 
-// Grid lines (floor)
-const gridHelper = new THREE.GridHelper(GRID_W * CELL, GRID_W, 0x1a2a4a, 0x0d1a30);
-gridHelper.position.set((GRID_W - 1) * CELL / 2, -CELL * 0.5, (GRID_H - 1) * CELL / 2);
-scene.add(gridHelper);
+const center = new THREE.Vector3(
+  (GRID_W - 1) * CELL / 2,
+  (GRID_Z - 1) * CELL / 2,
+  (GRID_H - 1) * CELL / 2
+);
+pointLight.position.set(center.x, center.y + 4, center.z);
 
-// Draw faint cell boxes
-const cellGeo = new THREE.BoxGeometry(CELL * 0.92, CELL * 0.92, CELL * 0.92);
-const cellMat = new THREE.MeshBasicMaterial({ color: 0x1a2a4a, wireframe: true, transparent: true, opacity: 0.15 });
+// Camera target & orbit
+const target = center.clone();
+let theta = Math.PI / 4, phi = Math.PI / 3.5, radius = 32;
 
-const cellMeshes = {};
+// Grid lines (toggleable)
+let gridHelper = null;
+function buildGrid() {
+  if (gridHelper) scene.remove(gridHelper);
+  gridHelper = new THREE.GridHelper(GRID_W * CELL, GRID_W, 0x1a2a4a, 0x0d1a30);
+  gridHelper.position.set((GRID_W - 1) * CELL / 2, -CELL * 0.5, (GRID_H - 1) * CELL / 2);
+  scene.add(gridHelper);
+}
+buildGrid();
+
+// Faint cell wireframes (subtle)
+const cellGeo = new THREE.BoxGeometry(CELL * 0.9, CELL * 0.9, CELL * 0.9);
+const cellMat = new THREE.MeshBasicMaterial({
+  color: 0x1a2a4a, wireframe: true,
+  transparent: true, opacity: 0.07
+});
 for (let x = 0; x < GRID_W; x++) {
   for (let y = 0; y < GRID_H; y++) {
     for (let z = 0; z < GRID_Z; z++) {
-      const m = new THREE.Mesh(cellGeo, cellMat.clone());
+      const m = new THREE.Mesh(cellGeo, cellMat);
       m.position.copy(cellPos(x, y, z));
       scene.add(m);
-      cellMeshes[`${x},${y},${z}`] = m;
     }
   }
 }
 
-// ===================== OBSTACLES =====================
+// ============================================================
+//   OBSTACLES
+// ============================================================
 let obstacleSet = new Set();
 let obstacleMeshes = [];
+let nfzMeshes = [];
+let obstaclesVisible = true;
+let nfzActive = false;
 
-function addObstacle(x, y, z, color = 0xff4422) {
+function addObstacle(x, y, z, color = 0xff4422, isNFZ = false) {
   const key = `${x},${y},${z}`;
   if (obstacleSet.has(key)) return;
   obstacleSet.add(key);
 
   const geo = new THREE.BoxGeometry(CELL * 0.88, CELL * 0.88, CELL * 0.88);
   const mat = new THREE.MeshPhongMaterial({
-    color, transparent: true, opacity: 0.85,
+    color, transparent: true, opacity: isNFZ ? 0.4 : 0.85,
     shininess: 80
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(cellPos(x, y, z));
   mesh.castShadow = true;
   scene.add(mesh);
-  obstacleMeshes.push(mesh);
 
   // Edge outline
   const edges = new THREE.EdgesGeometry(geo);
-  const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff8855, opacity: 0.6, transparent: true }));
+  const lineMat = new THREE.LineBasicMaterial({
+    color: isNFZ ? 0xaa66ff : 0xff8855,
+    opacity: 0.7, transparent: true
+  });
+  const line = new THREE.LineSegments(edges, lineMat);
   line.position.copy(cellPos(x, y, z));
   scene.add(line);
-  obstacleMeshes.push(line);
+
+  if (isNFZ) {
+    nfzMeshes.push(mesh, line);
+  } else {
+    obstacleMeshes.push(mesh, line);
+  }
 }
 
-// Default obstacles (column + spread)
-const defaultObstacles = [
-  [2, 2, 0], [2, 2, 1], [2, 2, 2],  // column
-  [1, 3, 0], [3, 1, 0],              // floor level
-  [0, 4, 1], [4, 0, 1],              // mid level
-  [3, 3, 1],                         // extra
-];
+function clearObstacles() {
+  obstacleMeshes.forEach(m => scene.remove(m));
+  nfzMeshes.forEach(m => scene.remove(m));
+  obstacleMeshes = [];
+  nfzMeshes = [];
+  obstacleSet = new Set();
+}
 
-function loadDefaultObstacles() {
-  defaultObstacles.forEach(([x, y, z]) => addObstacle(x, y, z));
+// Generate varied obstacles: columns, walls, scattered
+function generateObstacles(count = 25, seed = null) {
+  clearObstacles();
+  const rng = mulberry32(seed === null ? Math.floor(Math.random() * 1e6) : seed);
+
+  // 1 column (vertical tower)
+  const colX = 4 + Math.floor(rng() * 4);
+  const colY = 4 + Math.floor(rng() * 4);
+  for (let z = 0; z < GRID_Z - 1; z++) addObstacle(colX, colY, z);
+
+  // 2 walls
+  for (let i = 0; i < 2; i++) {
+    const wx = 2 + Math.floor(rng() * 8);
+    const wy = 2 + Math.floor(rng() * 8);
+    const horizontal = rng() > 0.5;
+    const len = 2 + Math.floor(rng() * 3);
+    for (let j = 0; j < len; j++) {
+      const dx = horizontal ? j : 0;
+      const dy = horizontal ? 0 : j;
+      if (wx + dx < GRID_W - 1 && wy + dy < GRID_H - 1) {
+        addObstacle(wx + dx, wy + dy, 0);
+        if (rng() > 0.5) addObstacle(wx + dx, wy + dy, 1);
+      }
+    }
+  }
+
+  // Scatter random obstacles
+  let placed = obstacleSet.size;
+  let tries = 0;
+  while (placed < count && tries < count * 5) {
+    tries++;
+    const x = Math.floor(rng() * GRID_W);
+    const y = Math.floor(rng() * GRID_H);
+    const z = Math.floor(rng() * GRID_Z);
+    // Don't block start or goal
+    if ((x === 0 && y === 0 && z === 0) || (x === GRID_W - 1 && y === GRID_H - 1 && z === GRID_Z - 1)) continue;
+    if (obstacleSet.has(`${x},${y},${z}`)) continue;
+    addObstacle(x, y, z);
+    placed++;
+  }
+
   document.getElementById('s-obstacles').textContent = obstacleSet.size;
 }
-loadDefaultObstacles();
 
-// ===================== START & GOAL =====================
-function makeMarker(color, pos, label) {
+// Seeded RNG (Mulberry32)
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// NFZ obstacles (added when toggle is on)
+const nfzCells = [
+  [3, 8, 3], [4, 8, 3], [5, 8, 3],
+  [8, 3, 3], [8, 4, 3], [8, 5, 3],
+  [6, 6, 4], [7, 6, 4]
+];
+
+function toggleNFZ() {
+  if (nfzActive) {
+    nfzMeshes.forEach(m => scene.remove(m));
+    nfzMeshes = [];
+    nfzCells.forEach(([x,y,z]) => obstacleSet.delete(`${x},${y},${z}`));
+    nfzActive = false;
+  } else {
+    nfzCells.forEach(([x,y,z]) => addObstacle(x, y, z, 0x8833ff, true));
+    nfzActive = true;
+  }
+  document.getElementById('s-obstacles').textContent = obstacleSet.size;
+}
+
+// Initial obstacles
+generateObstacles(25, 42);
+
+// ============================================================
+//   START & GOAL MARKERS
+// ============================================================
+function makeMarker(color, pos) {
   const geo = new THREE.SphereGeometry(0.35, 16, 16);
-  const mat = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.4, shininess: 100 });
+  const mat = new THREE.MeshPhongMaterial({
+    color, emissive: color, emissiveIntensity: 0.5, shininess: 100
+  });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(pos);
   scene.add(mesh);
 
   // Glow ring
-  const ringGeo = new THREE.TorusGeometry(0.5, 0.05, 8, 32);
+  const ringGeo = new THREE.TorusGeometry(0.55, 0.05, 8, 32);
   const ringMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 });
   const ring = new THREE.Mesh(ringGeo, ringMat);
   ring.position.copy(pos);
   ring.rotation.x = Math.PI / 2;
   scene.add(ring);
-  return { mesh, ring };
+
+  // Vertical beacon
+  const beamGeo = new THREE.CylinderGeometry(0.04, 0.04, 8, 8);
+  const beamMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.25 });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.position.copy(pos);
+  beam.position.y += 4;
+  scene.add(beam);
+
+  return { mesh, ring, beam };
 }
 
-const startPos = cellPos(0, 0, 0);
-const goalPos = cellPos(4, 4, 2);
-makeMarker(0x00ff88, startPos, 'Start');
-makeMarker(0xff4466, goalPos, 'Goal');
+const startCell = [0, 0, 0];
+const goalCell = [GRID_W - 1, GRID_H - 1, GRID_Z - 1];
+makeMarker(0x00ff88, cellPos(...startCell));
+makeMarker(0xff4466, cellPos(...goalCell));
 
-// ===================== A* SEARCH =====================
+// ============================================================
+//   A* SEARCH
+// ============================================================
 function heuristic(a, b) {
   return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
 }
 
 function getNeighbors(x, y, z) {
-  const dirs = [
-    [1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1],
-    [1,1,0],[-1,-1,0],[1,-1,0],[-1,1,0],
-    [1,0,1],[-1,0,1],[0,1,1],[0,-1,1],
-    [1,0,-1],[-1,0,-1],[0,1,-1],[0,-1,-1],
-  ];
+  // 26-connected (6-axis + diagonals)
+  const dirs = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dz = -1; dz <= 1; dz++) {
+        if (dx === 0 && dy === 0 && dz === 0) continue;
+        dirs.push([dx, dy, dz]);
+      }
+    }
+  }
   const result = [];
   for (const [dx, dy, dz] of dirs) {
-    const nx = x+dx, ny = y+dy, nz = z+dz;
-    if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H || nz < 0 || nz >= GRID_Z) continue;
+    const nx = x + dx, ny = y + dy, nz = z + dz;
+    if (nx < 0 || nx >= GRID_W) continue;
+    if (ny < 0 || ny >= GRID_H) continue;
+    if (nz < 0 || nz >= GRID_Z) continue;
     if (obstacleSet.has(`${nx},${ny},${nz}`)) continue;
     const cost = Math.sqrt(dx*dx + dy*dy + dz*dz);
     result.push({ pos: [nx, ny, nz], cost });
@@ -277,17 +556,11 @@ function getNeighbors(x, y, z) {
 
 class MinHeap {
   constructor() { this.heap = []; }
-  push(item) {
-    this.heap.push(item);
-    this._bubbleUp(this.heap.length - 1);
-  }
+  push(item) { this.heap.push(item); this._bubbleUp(this.heap.length - 1); }
   pop() {
     const top = this.heap[0];
     const last = this.heap.pop();
-    if (this.heap.length > 0) {
-      this.heap[0] = last;
-      this._sinkDown(0);
-    }
+    if (this.heap.length > 0) { this.heap[0] = last; this._sinkDown(0); }
     return top;
   }
   get size() { return this.heap.length; }
@@ -315,11 +588,17 @@ let foundPath = null;
 let pathMeshes = [];
 
 function runAstar() {
+  // Clear old path
+  pathMeshes.forEach(m => scene.remove(m));
+  pathMeshes = [];
+
   const t0 = performance.now();
-  const start = [0, 0, 0], goal = [4, 4, 2];
+  const start = startCell, goal = goalCell;
   const open = new MinHeap();
   const gScore = {};
   const cameFrom = {};
+  const closed = new Set();
+  let expanded = 0;
   const key = p => p.join(',');
 
   gScore[key(start)] = 0;
@@ -327,10 +606,14 @@ function runAstar() {
 
   while (open.size > 0) {
     const [f, cur] = open.pop();
-    if (key(cur) === key(goal)) {
-      // Reconstruct path
+    const ck = key(cur);
+    if (closed.has(ck)) continue;
+    closed.add(ck);
+    expanded++;
+
+    if (ck === key(goal)) {
       const path = [];
-      let node = key(goal);
+      let node = ck;
       while (node) {
         path.unshift(node.split(',').map(Number));
         node = cameFrom[node];
@@ -342,32 +625,35 @@ function runAstar() {
       document.getElementById('path-cost').textContent = gScore[key(goal)].toFixed(2);
       document.getElementById('s-path').textContent = path.length;
       document.getElementById('s-time').textContent = elapsed + 'ms';
-      document.getElementById('step-info').textContent = `✅ A* tìm được đường: ${path.length} bước, cost=${gScore[key(goal)].toFixed(2)} — Nhấn "Bay UAV" để xem animation`;
+      document.getElementById('s-expanded').textContent = expanded;
+      document.getElementById('step-info').textContent =
+        `✅ A* tìm được: ${path.length} bước, cost=${gScore[key(goal)].toFixed(2)} — Bay UAV để xem animation`;
+      // Reset battery to 100% for new mission
+      battery = 100;
+      updateBatteryDisplay();
       return true;
     }
+
     for (const { pos: nb, cost } of getNeighbors(...cur)) {
-      const ng = (gScore[key(cur)] || 0) + cost;
+      const ng = (gScore[ck] || 0) + cost;
       if (ng < (gScore[key(nb)] ?? Infinity)) {
         gScore[key(nb)] = ng;
-        cameFrom[key(nb)] = key(cur);
+        cameFrom[key(nb)] = ck;
         open.push([ng + heuristic(nb, goal), nb]);
       }
     }
   }
-  document.getElementById('step-info').textContent = '❌ Không tìm được đường! Thử xóa obstacles';
+  document.getElementById('step-info').textContent = '❌ Không tìm được đường! Giảm obstacles hoặc tắt NFZ';
   return false;
 }
 
 function drawPath(path) {
-  // Clear old
-  pathMeshes.forEach(m => scene.remove(m));
-  pathMeshes = [];
-
-  // Tube/line along path
   const points = path.map(([x,y,z]) => cellPos(x, y, z));
   const curve = new THREE.CatmullRomCurve3(points);
   const tubeGeo = new THREE.TubeGeometry(curve, path.length * 4, 0.08, 8, false);
-  const tubeMat = new THREE.MeshBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.7 });
+  const tubeMat = new THREE.MeshBasicMaterial({
+    color: 0x0088ff, transparent: true, opacity: 0.75
+  });
   const tube = new THREE.Mesh(tubeGeo, tubeMat);
   scene.add(tube);
   pathMeshes.push(tube);
@@ -375,7 +661,7 @@ function drawPath(path) {
   // Waypoint dots
   path.forEach(([x, y, z], i) => {
     if (i === 0 || i === path.length - 1) return;
-    const geo = new THREE.SphereGeometry(0.12, 8, 8);
+    const geo = new THREE.SphereGeometry(0.1, 8, 8);
     const mat = new THREE.MeshBasicMaterial({ color: 0x44aaff });
     const m = new THREE.Mesh(geo, mat);
     m.position.copy(cellPos(x, y, z));
@@ -384,7 +670,9 @@ function drawPath(path) {
   });
 }
 
-// ===================== UAV MODEL =====================
+// ============================================================
+//   UAV MODEL
+// ============================================================
 let uavGroup = null;
 let uavAnimating = false;
 let uavT = 0;
@@ -395,32 +683,38 @@ function makeUAV() {
   uavGroup = new THREE.Group();
 
   // Body
-  const bodyGeo = new THREE.BoxGeometry(0.4, 0.12, 0.4);
+  const bodyGeo = new THREE.BoxGeometry(0.35, 0.1, 0.35);
   const bodyMat = new THREE.MeshPhongMaterial({ color: 0xffcc00, shininess: 120 });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
   uavGroup.add(body);
 
   // Arms
-  const armGeo = new THREE.BoxGeometry(0.7, 0.05, 0.08);
+  const armGeo = new THREE.BoxGeometry(0.6, 0.04, 0.06);
   const armMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
-  [-1, 1].forEach(sx => [-1, 1].forEach(sy => {
-    const arm = new THREE.Mesh(armGeo, armMat);
-    arm.position.set(sx * 0.15, 0, sy * 0.15);
-    arm.rotation.y = Math.PI / 4 * sx * sy;
-    uavGroup.add(arm);
-  }));
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      const arm = new THREE.Mesh(armGeo, armMat);
+      arm.position.set(sx * 0.13, 0, sy * 0.13);
+      arm.rotation.y = Math.PI / 4 * sx * sy;
+      uavGroup.add(arm);
+    }
+  }
 
   // Rotors
-  const rotorGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.02, 16);
-  const rotorMat = new THREE.MeshPhongMaterial({ color: 0x333333, transparent: true, opacity: 0.6 });
-  const rotorPositions = [[0.35, 0, 0.35], [-0.35, 0, 0.35], [0.35, 0, -0.35], [-0.35, 0, -0.35]];
+  const rotorGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.02, 16);
+  const rotorMat = new THREE.MeshPhongMaterial({
+    color: 0x333333, transparent: true, opacity: 0.6
+  });
+  const rotorPositions = [
+    [0.3, 0, 0.3], [-0.3, 0, 0.3], [0.3, 0, -0.3], [-0.3, 0, -0.3]
+  ];
   rotorPositions.forEach(([rx, ry, rz]) => {
     const rotor = new THREE.Mesh(rotorGeo, rotorMat);
-    rotor.position.set(rx, 0.08, rz);
+    rotor.position.set(rx, 0.07, rz);
     uavGroup.add(rotor);
   });
 
-  uavGroup.position.copy(cellPos(0, 0, 0));
+  uavGroup.position.copy(cellPos(...startCell));
   scene.add(uavGroup);
 }
 
@@ -432,57 +726,170 @@ function animateUAV() {
   if (uavAnimating) {
     uavAnimating = false;
     document.getElementById('btn-fly').textContent = '✈ Bay UAV';
+    document.getElementById('btn-fly').classList.remove('active');
     return;
   }
   const points = foundPath.map(([x,y,z]) => cellPos(x, y, z));
   pathCurve = new THREE.CatmullRomCurve3(points);
   makeUAV();
   uavT = 0;
+  battery = 100;
+  updateBatteryDisplay();
   uavAnimating = true;
   document.getElementById('btn-fly').classList.add('active');
   document.getElementById('btn-fly').textContent = '⏹ Dừng';
 }
 
-// ===================== NFZ TOGGLE =====================
-let nfzAdded = false;
-const nfzObstacles = [[0, 3, 2], [1, 4, 2], [4, 1, 2]];
+// ============================================================
+//   BATTERY SYSTEM
+// ============================================================
+let battery = 100;
+const BATTERY_CIRCUMFERENCE = 471; // 2π × 75
 
-function toggleObstacles() {
-  if (!nfzAdded) {
-    nfzObstacles.forEach(([x,y,z]) => addObstacle(x, y, z, 0x8833ff));
-    nfzAdded = true;
-    document.getElementById('s-obstacles').textContent = obstacleSet.size;
-    document.getElementById('step-info').textContent = '🟣 Đã thêm No-Fly Zone (tím) — Tìm lại đường A*';
-    // Clear path
-    pathMeshes.forEach(m => scene.remove(m));
-    pathMeshes = [];
-    foundPath = null;
-    document.getElementById('path-len').textContent = '–';
-    document.getElementById('path-cost').textContent = '–';
-  } else {
-    // Remove NFZ meshes (just remove the last ones added)
-    nfzObstacles.forEach(([x,y,z]) => obstacleSet.delete(`${x},${y},${z}`));
-    // Remove all meshes and re-add defaults
-    obstacleMeshes.forEach(m => scene.remove(m));
-    obstacleMeshes = [];
-    obstacleSet = new Set();
-    loadDefaultObstacles();
-    nfzAdded = false;
-    document.getElementById('step-info').textContent = 'NFZ đã xóa — Tìm lại đường A*';
-    pathMeshes.forEach(m => scene.remove(m));
-    pathMeshes = [];
-    foundPath = null;
+function updateBatteryDisplay() {
+  battery = Math.max(0, Math.min(100, battery));
+  const offset = BATTERY_CIRCUMFERENCE * (1 - battery / 100);
+  const circle = document.getElementById('bat-circle');
+  circle.setAttribute('stroke-dashoffset', offset);
+
+  // Color gradient based on level
+  let gradId = 'batGrad';
+  let statusText = 'FULL';
+  let statusColor = '#00ff88';
+
+  if (battery < 30) {
+    gradId = 'batGradCrit';
+    statusText = 'CRITICAL';
+    statusColor = '#ff3333';
+  } else if (battery < 60) {
+    gradId = 'batGradLow';
+    statusText = 'LOW';
+    statusColor = '#ffaa00';
+  } else if (battery < 90) {
+    statusText = 'OK';
+    statusColor = '#00d4ff';
+  }
+
+  circle.setAttribute('stroke', `url(#${gradId})`);
+  document.getElementById('bat-pct').textContent = Math.round(battery) + '%';
+  const statusEl = document.getElementById('bat-status');
+  statusEl.textContent = statusText;
+  statusEl.style.color = statusColor;
+}
+
+// ============================================================
+//   WIND
+// ============================================================
+let windSpeed = 5;
+let windParticles = null;
+let windActive = false;
+
+function buildWindParticles() {
+  if (windParticles) scene.remove(windParticles);
+  const N = 200;
+  const positions = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    positions[i * 3]     = (Math.random() - 0.5) * 30;
+    positions[i * 3 + 1] = Math.random() * 12;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const mat = new THREE.PointsMaterial({
+    color: 0x88ddff, size: 0.08, transparent: true, opacity: 0.5
+  });
+  windParticles = new THREE.Points(geo, mat);
+  windParticles.position.copy(center);
+  windParticles.position.x -= 8;
+  windParticles.position.z -= 8;
+  scene.add(windParticles);
+}
+
+function onWindChange(value) {
+  windSpeed = parseFloat(value);
+  document.getElementById('v-wind').textContent = value + ' m/s';
+}
+
+function onObsCountChange(value) {
+  document.getElementById('v-obs-count').textContent = value;
+}
+
+// ============================================================
+//   TOGGLE SWITCHES
+// ============================================================
+function toggleSwitch(name) {
+  const elMap = {
+    obstacles: 't-obs', nfz: 't-nfz', grid: 't-grid', fog: 't-fog', wind: 't-wind'
+  };
+  const el = document.getElementById(elMap[name]);
+  el.classList.toggle('on');
+  const isOn = el.classList.contains('on');
+
+  if (name === 'obstacles') {
+    obstaclesVisible = isOn;
+    obstacleMeshes.forEach(m => m.visible = isOn);
+  } else if (name === 'nfz') {
+    toggleNFZ();
+  } else if (name === 'grid') {
+    if (gridHelper) gridHelper.visible = isOn;
+  } else if (name === 'fog') {
+    fogActive = isOn;
+    scene.fog = isOn ? fogInst : null;
+  } else if (name === 'wind') {
+    windActive = isOn;
+    if (isOn) {
+      if (!windParticles) buildWindParticles();
+      windParticles.visible = true;
+    } else if (windParticles) {
+      windParticles.visible = false;
+    }
   }
 }
 
-function resetScene() {
-  obstacleMeshes.forEach(m => scene.remove(m));
-  obstacleMeshes = [];
-  obstacleSet = new Set();
-  nfzAdded = false;
+// ============================================================
+//   RANDOM MAP
+// ============================================================
+function randomMap() {
+  // Reset state
   pathMeshes.forEach(m => scene.remove(m));
   pathMeshes = [];
   if (uavGroup) scene.remove(uavGroup);
+  uavGroup = null;
+  uavAnimating = false;
+  document.getElementById('btn-fly').textContent = '✈ Bay UAV';
+  document.getElementById('btn-fly').classList.remove('active');
+  foundPath = null;
+
+  // Reset NFZ toggle visually
+  if (nfzActive) {
+    document.getElementById('t-nfz').classList.remove('on');
+    nfzMeshes.forEach(m => scene.remove(m));
+    nfzMeshes = [];
+    nfzCells.forEach(([x,y,z]) => obstacleSet.delete(`${x},${y},${z}`));
+    nfzActive = false;
+  }
+
+  // Generate new
+  const count = parseInt(document.getElementById('s-obs').value);
+  generateObstacles(count);
+  document.getElementById('path-len').textContent = '–';
+  document.getElementById('path-cost').textContent = '–';
+  document.getElementById('s-path').textContent = '–';
+  document.getElementById('s-time').textContent = '–';
+  document.getElementById('s-expanded').textContent = '–';
+  document.getElementById('step-info').textContent = '🎲 Map mới đã tạo — Nhấn "Tìm đường A*"';
+  battery = 100;
+  updateBatteryDisplay();
+}
+
+// ============================================================
+//   RESET
+// ============================================================
+function resetScene() {
+  pathMeshes.forEach(m => scene.remove(m));
+  pathMeshes = [];
+  if (uavGroup) scene.remove(uavGroup);
+  uavGroup = null;
   uavAnimating = false;
   foundPath = null;
   uavT = 0;
@@ -492,16 +899,31 @@ function resetScene() {
   document.getElementById('path-cost').textContent = '–';
   document.getElementById('s-path').textContent = '–';
   document.getElementById('s-time').textContent = '–';
+  document.getElementById('s-expanded').textContent = '–';
   document.getElementById('step-info').textContent = '↺ Reset xong — Nhấn "Tìm đường A*" để bắt đầu';
-  loadDefaultObstacles();
+
+  // Regenerate default map
+  if (nfzActive) {
+    document.getElementById('t-nfz').classList.remove('on');
+    nfzMeshes.forEach(m => scene.remove(m));
+    nfzMeshes = [];
+    nfzCells.forEach(([x,y,z]) => obstacleSet.delete(`${x},${y},${z}`));
+    nfzActive = false;
+  }
+  generateObstacles(25, 42);
+
+  battery = 100;
+  updateBatteryDisplay();
 }
 
-// ===================== CAMERA ORBIT =====================
+// ============================================================
+//   CAMERA ORBIT
+// ============================================================
 let isDragging = false, prevMouse = { x: 0, y: 0 };
-let theta = Math.PI / 4, phi = Math.PI / 4, radius = 20;
-const target = new THREE.Vector3(4, 2, 4);
 
-canvas.addEventListener('mousedown', e => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('mousedown', e => {
+  isDragging = true; prevMouse = { x: e.clientX, y: e.clientY };
+});
 canvas.addEventListener('mouseup', () => isDragging = false);
 canvas.addEventListener('mousemove', e => {
   if (!isDragging) return;
@@ -512,16 +934,18 @@ canvas.addEventListener('mousemove', e => {
   prevMouse = { x: e.clientX, y: e.clientY };
 });
 canvas.addEventListener('wheel', e => {
-  radius = Math.max(6, Math.min(40, radius + e.deltaY * 0.02));
+  radius = Math.max(8, Math.min(80, radius + e.deltaY * 0.03));
   e.preventDefault();
 }, { passive: false });
 document.addEventListener('keydown', e => {
   if (e.key === 'r' || e.key === 'R') {
-    theta = Math.PI / 4; phi = Math.PI / 4; radius = 20;
+    theta = Math.PI / 4; phi = Math.PI / 3.5; radius = 32;
   }
 });
 
-// ===================== ANIMATION LOOP =====================
+// ============================================================
+//   ANIMATION LOOP
+// ============================================================
 const clock = new THREE.Clock();
 
 function animate() {
@@ -536,33 +960,64 @@ function animate() {
 
   // UAV flight
   if (uavAnimating && pathCurve && uavGroup) {
-    uavT += dt * 0.12;
-    if (uavT >= 1) {
-      uavT = 0; // loop
-    }
-    const pos = pathCurve.getPoint(uavT);
-    uavGroup.position.lerp(pos, 0.12);
+    // Speed slows down with low battery
+    const speedFactor = battery > 20 ? 1 : 0.4;
+    uavT += dt * 0.06 * speedFactor;
 
-    // Face direction of travel
+    if (uavT >= 1) {
+      uavT = 1;
+      uavAnimating = false;
+      document.getElementById('btn-fly').textContent = '✈ Bay UAV';
+      document.getElementById('btn-fly').classList.remove('active');
+      document.getElementById('step-info').textContent =
+        `🎯 UAV đã đến đích! Pin còn lại: ${Math.round(battery)}%`;
+    }
+
+    const pos = pathCurve.getPoint(uavT);
+    uavGroup.position.lerp(pos, 0.15);
+
+    // Face direction
     if (uavT + 0.01 < 1) {
-      const ahead = pathCurve.getPoint(uavT + 0.01);
+      const ahead = pathCurve.getPoint(Math.min(uavT + 0.01, 1));
       uavGroup.lookAt(ahead);
     }
 
-    // Spin rotors (simulate)
-    uavGroup.children.slice(2).forEach((r, i) => {
-      r.rotation.y += (i % 2 === 0 ? 1 : -1) * dt * 15;
-    });
+    // Spin rotors (only mesh children that are rotors — last 4)
+    const children = uavGroup.children;
+    for (let i = children.length - 4; i < children.length; i++) {
+      if (i >= 0 && children[i]) {
+        children[i].rotation.y += (i % 2 === 0 ? 1 : -1) * dt * 25;
+      }
+    }
 
+    // Battery drain — base + wind effect
+    const baseDrain = 1.5;        // %/s
+    const windDrain = windSpeed * 0.15; // higher wind drains faster
+    battery -= (baseDrain + windDrain) * dt;
+    updateBatteryDisplay();
+
+    // Step info
     const step = Math.floor(uavT * (foundPath.length - 1));
-    const [cx, cy, cz] = foundPath[Math.min(step, foundPath.length - 1)];
+    const idx = Math.min(step, foundPath.length - 1);
+    const [cx, cy, cz] = foundPath[idx];
     document.getElementById('step-info').textContent =
-      `✈ UAV đang bay → Step ${step + 1}/${foundPath.length} | Vị trí: (${cx}, ${cy}, ${cz})`;
+      `✈ UAV bay → Step ${step + 1}/${foundPath.length} | Vị trí (${cx},${cy},${cz}) | Pin ${Math.round(battery)}% | Gió ${windSpeed} m/s`;
   }
 
-  // Pulse start/goal
+  // Pulse light
   const t = clock.getElapsedTime();
   pointLight.intensity = 1.5 + Math.sin(t * 2) * 0.5;
+
+  // Wind particles drift
+  if (windActive && windParticles) {
+    const positions = windParticles.geometry.attributes.position.array;
+    const drift = windSpeed * 0.04;
+    for (let i = 0; i < positions.length; i += 3) {
+      positions[i] += drift; // x drift
+      if (positions[i] > 15) positions[i] = -15;
+    }
+    windParticles.geometry.attributes.position.needsUpdate = true;
+  }
 
   renderer.render(scene, camera);
 }
@@ -572,6 +1027,9 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// Init battery display
+updateBatteryDisplay();
 
 animate();
 </script>
