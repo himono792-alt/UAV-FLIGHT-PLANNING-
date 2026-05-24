@@ -10,13 +10,6 @@
 **Môn học:** Trí tuệ Nhân tạo
 **Giảng viên hướng dẫn:** NGUYỄN THỊ TUYẾT HẢI
 
-**Thực hiện bởi nhóm sinh viên:**
-
-1. \<Họ tên thành viên 01\> — \<MSSV\> — Trưởng nhóm
-2. \<Họ tên thành viên 02\> — \<MSSV\> — Thành viên
-3. \<Họ tên thành viên 03\> — \<MSSV\> — Thành viên
-
-*TP.HCM, tháng …… / 20……*
 
 ---
 
