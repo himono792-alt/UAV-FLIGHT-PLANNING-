@@ -12,9 +12,9 @@
 
 **Thực hiện bởi nhóm sinh viên:**
 
-1. \<Họ tên thành viên 1\> — \<MSSV\> — Trưởng nhóm
-2. \<Họ tên thành viên 2\> — \<MSSV\> — Thành viên
-3. \<Họ tên thành viên 3\> — \<MSSV\> — Thành viên
+1. \<CHÂU GIA BẢO\> — \<N22DCAT005\> — Trưởng nhóm
+2. \<LÊ NGỌC TRÂM ANH\> — \<N23DCAT004\> — Thành viên
+3. \<ĐÀO XUÂN CUỜNG\> — \<N20DCCN089\> — Thành viên
 
 *TP.HCM, tháng 05 / 2026
 
