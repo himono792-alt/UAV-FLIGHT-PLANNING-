@@ -43,7 +43,6 @@ outputs/
 # Ngoại lệ: giữ lại demo HCM 3D và geojson quỹ đạo làm phần tham khảo
 !outputs/
 outputs/*
-!outputs/hcm_3d_demo.html
 !outputs/hcm_uav_path.geojson
 
 # Jupyter
