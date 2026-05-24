@@ -41,7 +41,8 @@ uav-flight-planning/
 │   ├── environment/
 │   │   ├── grid_world.py         ← Ch2 PEAS, Ch3 State Space
 │   │   ├── obstacles.py          ← Ch2 Environment
-│   │   └── visualizer.py         ← Demo visualization
+│   │   ├── visualizer.py         ← Demo visualization
+│   │   └── city_grid.py          ← HCM 3D grid từ dữ liệu địa lý
 │   ├── search/
 │   │   ├── graph_search.py       ← Ch3 BFS/DFS
 │   │   ├── heuristics.py         ← Ch4 Admissible heuristics
@@ -62,21 +63,35 @@ uav-flight-planning/
 │   │   ├── decision_tree.py      ← Ch9 Supervised Learning
 │   │   ├── regression.py         ← Ch9 Linear Regression
 │   │   └── reinforcement.py      ← Ch9 Q-Learning
+│   ├── geodata/
+│   │   └── osm_loader.py         ← OpenStreetMap/Overpass loader
 │   └── agent/
-│       └── uav_agent.py          ← Ch2 Learning Agent (tích hợp)
+│       └── uav_agent.py          ← Ch2 Learning Agent tích hợp
 ├── tests/
-│   ├── test_environment.py       ← 25 tests GĐ1
-│   ├── test_search.py            ← 18 tests GĐ2
-│   ├── test_optimizer.py         ← 18 tests GĐ3
-│   ├── test_knowledge.py         ← 28 tests GĐ4
-│   ├── test_bayesian.py          ← 38 tests GĐ5
-│   ├── test_learning.py          ← 26 tests GĐ6
-│   └── test_integration.py       ← 22 tests GĐ7
+│   ├── test_environment.py       ← 21 tests môi trường 3D
+│   ├── test_city_geodata.py      ← 7 tests HCM geodata/city grid
+│   ├── test_search.py            ← 33 tests tìm kiếm
+│   ├── test_optimizer.py         ← 20 tests tối ưu
+│   ├── test_knowledge.py         ← 38 tests tri thức/logic
+│   ├── test_bayesian.py          ← 29 tests xác suất/MEU
+│   ├── test_learning.py          ← 28 tests học máy
+│   └── test_integration.py       ← 24 tests tích hợp agent
 ├── docs/
 │   ├── bao_cao.pdf               ← Báo cáo đồ án
 │   ├── demo_guide.md             ← Hướng dẫn 4 demo
-│   └── mapping_ly_thuyet.md      ← File này
+│   ├── mapping_ly_thuyet.md      ← File này
+│   └── phan_cong.pdf             ← Bảng phân công nhiệm vụ
+├── configs/
+│   ├── default_config.yaml        ← Cấu hình mặc định
+│   └── hcm_central.yaml          ← Bbox/cell size cho HCM 3D
+├── tools/
+│   └── enhance_hcm_building_detail.py ← Build/enhance HCM demo
+├── outputs/
+│   └── hcm_uav_path.geojson      ← Quỹ đạo UAV mẫu
 ├── main.py                       ← Entry point, 5 demo scenarios
+├── demo_visualize.py             ← Demo matplotlib 3D
+├── demo_3d.html                  ← Demo web 3D abstract
+├── demo_hcm_3d.py                ← Static server cho HCM demo
 └── requirements.txt
 ```
 
@@ -86,11 +101,12 @@ uav-flight-planning/
 
 | Module | Tests | Status |
 |--------|-------|--------|
-| environment | 25 | ✅ PASS |
-| search | 18 | ✅ PASS |
-| optimizer | 18 | ✅ PASS |
-| knowledge | 28 | ✅ PASS |
-| bayesian | 38 | ✅ PASS |
-| learning | 26 | ✅ PASS |
-| integration | 22 | ✅ PASS |
-| **TỔNG** | **175** | **✅ 175/175 PASS** |
+| environment | 21 | ✅ PASS |
+| city_geodata | 7 | ✅ PASS |
+| search | 33 | ✅ PASS |
+| optimizer | 20 | ✅ PASS |
+| knowledge | 38 | ✅ PASS |
+| bayesian | 29 | ✅ PASS |
+| learning | 28 | ✅ PASS |
+| integration | 24 | ✅ PASS |
+| **TỔNG** | **200** | **✅ 200/200 PASS** |

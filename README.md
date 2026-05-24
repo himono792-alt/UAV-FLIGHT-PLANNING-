@@ -4,7 +4,7 @@
 
 Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D, tích hợp đầy đủ **9/9 chương lý thuyết TTNT**.
 
-![Tests](https://img.shields.io/badge/tests-193%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-200%20passed-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![Release](https://img.shields.io/badge/release-v1.0--hcm--demo-blue)](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-/releases/tag/v1.0-hcm-demo)
@@ -98,9 +98,9 @@ Output mẫu (5 kịch bản thử nghiệm):
 python -m pytest tests/ -v
 ```
 
-Kết quả: **193/193 tests PASS** trong khoảng 8 giây.
+Kết quả: **200/200 tests PASS** trong khoảng 8 giây.
 
-Test bao phủ đầy đủ các module: `test_bayesian`, `test_environment`, `test_integration`, `test_knowledge`, `test_learning`, `test_optimizer`, `test_search`.
+Test bao phủ đầy đủ các module: `test_bayesian`, `test_city_geodata`, `test_environment`, `test_integration`, `test_knowledge`, `test_learning`, `test_optimizer`, `test_search`.
 
 ## Kết quả thực nghiệm
 
@@ -122,7 +122,7 @@ UAV-FLIGHT-PLANNING/
 │   ├── learning/           Decision Tree, Regression, Q-Learning
 │   ├── geodata/            OSM Loader (Overpass → GridWorld)
 │   └── agent/              UAVAgent (tích hợp đầy đủ pipeline)
-├── tests/                  193 unit tests + integration tests
+├── tests/                  200 unit tests + integration tests
 ├── docs/
 │   ├── bao_cao.pdf             Báo cáo đồ án (theo mẫu PTIT)
 │   ├── demo_guide.md           Hướng dẫn chi tiết 4 demo
