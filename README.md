@@ -28,7 +28,7 @@ Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D,
 
 | File | Nội dung |
 |---|---|
-| [docs/bao_cao.md](docs/bao_cao.md) | Báo cáo đồ án môn học, mô tả bài toán, cơ sở lý thuyết, thiết kế hệ thống và kết quả thực nghiệm |
+| [docs/bao_cao.pdf](docs/bao_cao.pdf) | Báo cáo đồ án môn học, mô tả bài toán, cơ sở lý thuyết, thiết kế hệ thống và kết quả thực nghiệm |
 | [docs/mapping_ly_thuyet.md](docs/mapping_ly_thuyet.md) | Bảng mapping giữa 9 chương lý thuyết Trí tuệ Nhân tạo và các module/code trong dự án |
 | [docs/demo_guide.md](docs/demo_guide.md) | Hướng dẫn chạy 4 demo: CLI, matplotlib 3D, web 3D abstract và HCM 3D Map |
 | [docs/phan_cong.pdf](docs/phan_cong.pdf) | Bảng phân công nhiệm vụ của nhóm, gồm vai trò và phần việc tổng quan của từng thành viên |
@@ -124,7 +124,7 @@ UAV-FLIGHT-PLANNING/
 │   └── agent/              UAVAgent (tích hợp đầy đủ pipeline)
 ├── tests/                  193 unit tests + integration tests
 ├── docs/
-│   ├── bao_cao.md              Báo cáo đồ án (theo mẫu PTIT)
+│   ├── bao_cao.pdf             Báo cáo đồ án (theo mẫu PTIT)
 │   ├── demo_guide.md           Hướng dẫn chi tiết 4 demo
 │   ├── mapping_ly_thuyet.md    Mapping với chương trình PTIT
 │   └── phan_cong.pdf           Bảng phân công nhiệm vụ của nhóm

@@ -258,6 +258,6 @@ Modules tích hợp:
 ## Bước tiếp theo
 
 Sau khi xem demo:
-- Đọc [Báo cáo đồ án](bao_cao.md) — chi tiết phương pháp luận
+- Đọc [Báo cáo đồ án](bao_cao.pdf) — chi tiết phương pháp luận
 - Đọc [Mapping lý thuyết](mapping_ly_thuyet.md) — đối chiếu với chương trình PTIT
 - Xem source code trong `src/` để hiểu thuật toán
