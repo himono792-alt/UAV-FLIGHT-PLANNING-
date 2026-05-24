@@ -1,0 +1,21 @@
+# HCM central demo configuration.
+# BBox order follows Overpass: south, west, north, east.
+
+area:
+  name: q1_thuduc
+  bbox: [10.7600, 106.6900, 10.8585, 106.7995]
+  tiles: [3, 4]
+  tile_zoom: 15
+
+grid:
+  cell_xy_m: 40
+  cell_z_m: 10
+  max_altitude_m: 260
+  safety_clearance_m: 20
+  allow_diagonal: true
+
+mission:
+  # PTIT Thu Duc -> District 1.
+  start_lonlat: [106.7856729, 10.8477107]
+  goal_lonlat: [106.7009, 10.7769]
+  cruise_altitude_m: 80
