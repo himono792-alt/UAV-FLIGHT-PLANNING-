@@ -1,10 +1,17 @@
 # Hướng dẫn các demo
 
-Dự án có **3 demo** khác nhau, từ đơn giản đến trực quan, để hiển thị hoạt động của UAV Agent.
+Dự án có **4 demo** khác nhau, từ CLI đến web 3D trên bản đồ thật, để hiển thị hoạt động của UAV Agent.
+
+| Demo | Mức trực quan | Cần Python | Cần internet | File chính |
+|---|---|---|---|---|
+| 🌐 3D Web abstract | Cao | Không | Có (CDN) | `demo_3d.html` |
+| 🗺️ HCM 3D Map | Rất cao | Tuỳ | Tuỳ | `outputs/hcm_3d_demo.html` (Release) |
+| 📊 Visualize matplotlib | Trung | Có | Không | `demo_visualize.py` |
+| 💻 CLI | Thấp | Có | Không | `main.py` |
 
 ---
 
-## 🌐 Demo 1 — 3D Web (Three.js)
+## 🌐 Demo 1 — 3D Web abstract (Three.js)
 
 ### Truy cập
 
@@ -44,7 +51,70 @@ xdg-open demo_3d.html     # Linux
 
 ---
 
-## 📊 Demo 2 — Visualize Local (matplotlib 3D)
+## 🗺️ Demo 2 — HCM 3D Map (Three.js + OpenStreetMap)
+
+### Truy cập
+
+Demo này nặng **12 MB** nên không nằm trong git tree. Tải từ GitHub Releases:
+
+**Link**: [Release v1.0-hcm-demo](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-/releases/tag/v1.0-hcm-demo)
+
+Sau khi tải:
+
+```bash
+# Đặt file vào thư mục outputs/ của repo
+mkdir -p outputs
+mv ~/Downloads/hcm_3d_demo.html outputs/
+
+# Cách 1 — mở thẳng (đủ cho hầu hết tính năng)
+start outputs/hcm_3d_demo.html        # Windows
+open outputs/hcm_3d_demo.html         # macOS
+
+# Cách 2 — chạy qua static server (khuyến nghị nếu cần fetch tile OSM)
+python demo_hcm_3d.py
+# Sau đó mở http://127.0.0.1:8765/outputs/hcm_3d_demo.html
+```
+
+### Đặc điểm
+
+- 🗺 Bản đồ Quận 1 + Thủ Đức từ OpenStreetMap, building LOD1
+- 🏗 Bounding box: `(10.76, 106.69) → (10.8585, 106.7995)` (~12 km × 11 km)
+- 🔬 Grid sinh tự động: cell 40 m × 40 m × 10 m, max altitude 260 m
+- 🎯 Mission mặc định: PTIT Thủ Đức → Quận 1
+
+### Ba tier so sánh chạy ngay trong trình duyệt
+
+| Tier | Thuật toán | Mục đích |
+|---|---|---|
+| **1. Search** | BFS, DFS, Greedy BFS, A\* × 3 heuristic, IDA\*, JPS | So sánh 8 thuật toán tìm đường trên cùng map |
+| **2. Optimizer** | Simulated Annealing, Genetic Algorithm | Làm mịn lời giải A\* |
+| **3. Knowledge** | KB rules (TELL/ASK trực tiếp) | Test phản ứng theo từng rule |
+
+### Tương tác
+
+- 🖱 Drag: xoay camera quanh map
+- 🖱 Scroll: zoom in/out
+- ⌨ Phím `R`: reset camera
+- ☑ Toggle "Nhà dày" / "Lớp bản đồ OSM" / "Show NFZ" trong panel trái
+- 💾 Export quỹ đạo: nút "Export GeoJSON" → file giống `outputs/hcm_uav_path.geojson`
+
+### Regenerate demo (nâng cao)
+
+Nếu MrB muốn build lại file `hcm_3d_demo.html` từ dữ liệu OSM mới:
+
+```bash
+# Cần cài thêm pyyaml + requests
+pip install pyyaml requests
+
+# Nâng chi tiết building từ cache OSM
+python tools/enhance_hcm_building_detail.py --config configs/hcm_central.yaml
+```
+
+> Script này đọc `configs/hcm_central.yaml` để biết bbox và cell size, sau đó dùng `src/geodata/osm_loader.py` để query Overpass API.
+
+---
+
+## 📊 Demo 3 — Visualize Local (matplotlib 3D)
 
 ### Cách chạy
 
@@ -88,7 +158,7 @@ python demo_visualize.py
 
 ---
 
-## 💻 Demo 3 — CLI (main.py)
+## 💻 Demo 4 — CLI (main.py)
 
 ### Cách chạy
 
@@ -148,11 +218,12 @@ Modules tích hợp:
 
 ---
 
-## So sánh 3 demo
+## So sánh 4 demo
 
-| Demo | Phù hợp | Thời gian | Cần internet | Cần Python |
+| Demo | Phù hợp | Thời gian setup | Cần internet | Cần Python |
 |---|---|---|---|---|
-| 🌐 **3D Web** | Show nhanh cho khách, không kỹ thuật | <30s | Có (Pages + CDN) | Không |
+| 🌐 **3D Web abstract** | Show nhanh cho khách, không kỹ thuật | <30s | Có (Pages + CDN) | Không |
+| 🗺️ **HCM 3D Map** | Báo cáo, bảo vệ đồ án — trực quan trên bản đồ thật | ~1 phút (tải 12MB) | Tuỳ chế độ | Tuỳ (chỉ cần nếu chạy server) |
 | 📊 **Visualize** | Sinh viên/nhà nghiên cứu xem path | 2-3 phút | Không | Có |
 | 💻 **CLI** | Test pipeline full, check số liệu | <5s | Không | Có |
 
@@ -164,6 +235,11 @@ Modules tích hợp:
 - Kiểm tra browser hỗ trợ WebGL: vào `chrome://gpu/` xem có "Hardware accelerated"
 - Check console (F12) xem có lỗi network/CORS không
 - Thử browser khác (Chrome/Edge thường ổn nhất với Three.js)
+
+### Demo HCM 3D Map không hiển thị building / bản đồ trắng
+- File 12 MB có thể chưa tải xong — chờ thêm vài giây
+- Nếu mở local thẳng (file://) mà thấy lỗi CORS, chạy qua server: `python demo_hcm_3d.py`
+- Tắt extension chặn quảng cáo (uBlock, AdBlock) — đôi khi chặn cả OSM tile
 
 ### Demo Visualize không mở cửa sổ
 - Cài backend GUI: `pip install pyqt5` hoặc dùng `MPLBACKEND=TkAgg python demo_visualize.py`

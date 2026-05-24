@@ -7,6 +7,7 @@ Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D,
 ![Tests](https://img.shields.io/badge/tests-193%20passed-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Release](https://img.shields.io/badge/release-v1.0--hcm--demo-blue)](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-/releases/tag/v1.0-hcm-demo)
 
 ---
 
@@ -14,7 +15,8 @@ Tác tử thông minh lập kế hoạch đường bay UAV trong không gian 3D,
 
 | Demo | Mô tả | Cách chạy |
 |---|---|---|
-| 🌐 **3D Web Demo** | Mô phỏng UAV bay 3D trên browser, có UI sci-fi xanh dương | **[Mở ngay](https://himono792-alt.github.io/UAV-FLIGHT-PLANNING-/demo_3d.html)** (Three.js, không cần cài đặt) |
+| 🌐 **3D Web (abstract)** | Mô phỏng UAV bay 3D trên grid 12×12×5, UI sci-fi xanh dương | **[Mở ngay](https://himono792-alt.github.io/UAV-FLIGHT-PLANNING-/demo_3d.html)** (Three.js, không cần cài đặt) |
+| 🗺️ **HCM 3D Map** | Bản đồ Quận 1 + Thủ Đức từ OSM, building LOD1, 3 tier thuật toán | **[Download HTML](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-/releases/tag/v1.0-hcm-demo)** rồi mở local |
 | 📊 **Visualize Local** | 4 scenario A* tìm đường, render matplotlib 3D xoay được | `python demo_visualize.py` |
 | 💻 **CLI Demo** | 5 kịch bản agent đầy đủ (gió, pin yếu, obstacle, replan) | `python main.py` |
 
@@ -101,24 +103,34 @@ Test bao phủ đầy đủ các module: `test_bayesian`, `test_environment`, `t
 ```
 UAV-FLIGHT-PLANNING/
 ├── src/
-│   ├── environment/    GridWorld3D, Obstacles, Visualizer
-│   ├── search/         A*, BFS, DFS, Greedy BFS, Heuristics
-│   ├── optimizer/      Simulated Annealing, Genetic Algorithm
-│   ├── knowledge/      KB-Agent, Propositional, FOL
-│   ├── bayesian/       Bayesian Network, MEU, Inference
-│   ├── learning/       Decision Tree, Regression, Q-Learning
-│   └── agent/          UAVAgent (tích hợp đầy đủ pipeline)
-├── tests/              193 unit tests + integration tests
+│   ├── environment/        GridWorld3D, Obstacles, Visualizer, CityGrid3D
+│   ├── search/             A*, BFS, DFS, Greedy BFS, Heuristics
+│   ├── optimizer/          Simulated Annealing, Genetic Algorithm
+│   ├── knowledge/          KB-Agent, Propositional, FOL
+│   ├── bayesian/           Bayesian Network, MEU, Inference
+│   ├── learning/           Decision Tree, Regression, Q-Learning
+│   ├── geodata/            OSM Loader (Overpass → GridWorld)
+│   └── agent/              UAVAgent (tích hợp đầy đủ pipeline)
+├── tests/                  193 unit tests + integration tests
 ├── docs/
-│   ├── bao_cao.md           Báo cáo đồ án
-│   ├── mapping_ly_thuyet.md Mapping với chương trình PTIT
-│   └── demo_guide.md        Hướng dẫn chi tiết 3 demo
-├── configs/            Cấu hình mặc định (default_config.yaml)
-├── main.py             Entry point — 5 demo scenarios CLI
-├── demo_visualize.py   Demo matplotlib 3D — 4 scenarios A*
-├── demo_3d.html        Demo 3D web Three.js (mở GitHub Pages)
-└── requirements.txt    Dependencies
+│   ├── bao_cao.md              Báo cáo đồ án (theo mẫu PTIT)
+│   ├── mapping_ly_thuyet.md    Mapping với chương trình PTIT
+│   └── demo_guide.md           Hướng dẫn chi tiết 4 demo
+├── configs/
+│   ├── default_config.yaml     Cấu hình mặc định cho main.py
+│   └── hcm_central.yaml        Bbox + cell size cho HCM 3D
+├── tools/
+│   └── enhance_hcm_building_detail.py   Nâng chi tiết building từ OSM
+├── outputs/
+│   └── hcm_uav_path.geojson    Xuất quỹ đạo UAV ra GeoJSON
+├── main.py                 Entry point — 5 demo scenarios CLI
+├── demo_visualize.py       Demo matplotlib 3D — 4 scenarios A*
+├── demo_3d.html            Demo 3D web abstract (GitHub Pages)
+├── demo_hcm_3d.py          Launcher static server cho demo HCM
+└── requirements.txt        Dependencies
 ```
+
+> 💡 **File `hcm_3d_demo.html` (12 MB)** không nằm trong repo — tải từ [Release v1.0-hcm-demo](https://github.com/himono792-alt/UAV-FLIGHT-PLANNING-/releases/tag/v1.0-hcm-demo), đặt vào `outputs/` rồi chạy `python demo_hcm_3d.py`.
 
 ## Yêu cầu môi trường
 
