@@ -8,7 +8,7 @@
 ## ĐỀ TÀI: UAV FLIGHT PLANNING AGENT — TÁC TỬ LẬP KẾ HOẠCH ĐƯỜNG BAY CHO UAV TRONG KHÔNG GIAN 3D
 
 **Môn học:** Trí tuệ Nhân tạo
-**Giảng viên hướng dẫn:** Hai Thị Tuyết Nguyên
+**Giảng viên hướng dẫn:** NGUYỄN THỊ TUYẾT HẢI
 
 **Thực hiện bởi nhóm sinh viên:**
 
