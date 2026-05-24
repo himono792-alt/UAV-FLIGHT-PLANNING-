@@ -325,7 +325,7 @@ Vai trò trong báo cáo: **demo "đẹp" cho phần bảo vệ** — cho phép 
 
 Demo này nâng cấp `demo_3d.html` thành phiên bản chạy trên **dữ liệu thật**. Quy trình dựng:
 
-1. Truy vấn Overpass API (`goiy/02_overpass_query_q1_thuduc.txt`) lấy toàn bộ building, đường và vùng cấm bay trong bounding box `(10.76, 106.69) → (10.8585, 106.7995)` — khu vực Quận 1 cộng Thủ Đức, kích thước thực ~12 km × 11 km.
+1. Truy vấn Overpass API (xem cấu hình bbox trong `configs/hcm_central.yaml`) lấy toàn bộ building, đường và vùng cấm bay trong bounding box `(10.76, 106.69) → (10.8585, 106.7995)` — khu vực Quận 1 cộng Thủ Đức, kích thước thực ~12 km × 11 km.
 2. Module `src/geodata/osm_loader.py` chuyển polygon OSM thành lưới `GridWorld3D` với `cell_xy = 40 m`, `cell_z = 10 m`. Building được gán `OBSTACLE`, sông Sài Gòn và sân bay Tân Sơn Nhất gán `NFZ`.
 3. Cùng A\* / SA / KB rules trong `src/` được port sang JS (giữ y nguyên công thức step-cost và tie-breaker để kết quả khớp Python từng số một).
 4. Front-end Three.js render building theo LOD1 (khối nhà cơ bản), có thể bật/tắt lớp bản đồ OSM nền, chọn dày/thưa cho phần "Nhà dày".

@@ -74,8 +74,8 @@ uav-flight-planning/
 │   └── test_integration.py       ← 22 tests GĐ7
 ├── docs/
 │   ├── bao_cao.md                ← Báo cáo đồ án
+│   ├── demo_guide.md             ← Hướng dẫn 4 demo
 │   └── mapping_ly_thuyet.md      ← File này
-├── goiy/                         ← Lộ trình từng giai đoạn
 ├── main.py                       ← Entry point, 5 demo scenarios
 └── requirements.txt
 ```
