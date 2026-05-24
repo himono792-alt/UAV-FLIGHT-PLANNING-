@@ -16,7 +16,7 @@
 2. \<Họ tên thành viên 2\> — \<MSSV\> — Thành viên
 3. \<Họ tên thành viên 3\> — \<MSSV\> — Thành viên
 
-*TP.HCM, tháng …… / 20……*
+*TP.HCM, tháng 05 / 2026
 
 ---
 
