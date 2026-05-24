@@ -2,7 +2,8 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>UAV Flight Planning – Demo 3D</title>
+<link rel="icon" href="data:,">
+<title>UAV Flight Planning – Demo 3D (9 chương TTNT)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #0a0a1a; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #cce8ff; }
@@ -155,6 +156,98 @@
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   button.warn { border-color: rgba(255,140,0,0.5); color: #ffa500; }
   button.danger { border-color: rgba(255,80,80,0.5); color: #ff6666; }
+
+  /* ============ 9 Chương TTNT Panel ============ */
+  #ch-panel { width: 260px; }
+  .ch-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .ch-tab {
+    background: rgba(0,150,255,0.08);
+    border: 1px solid rgba(0,150,255,0.25);
+    color: #88ccee;
+    font-size: 10px;
+    padding: 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .ch-tab:hover { background: rgba(0,180,255,0.2); }
+  .ch-tab.active {
+    background: rgba(0,200,255,0.35);
+    border-color: #00d4ff;
+    color: #00d4ff;
+    box-shadow: 0 0 6px rgba(0,200,255,0.4);
+  }
+  .ch-content {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #aaccdd;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .ch-content::-webkit-scrollbar { width: 3px; }
+  .ch-content::-webkit-scrollbar-thumb { background: rgba(0,200,255,0.3); border-radius: 2px; }
+  .ch-content h4 {
+    color: #00d4ff;
+    font-size: 11px;
+    margin: 6px 0 3px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ch-content table {
+    width: 100%;
+    font-size: 10px;
+    border-collapse: collapse;
+    margin: 4px 0;
+  }
+  .ch-content th, .ch-content td {
+    text-align: left;
+    padding: 2px 4px;
+    border-bottom: 1px solid rgba(0,200,255,0.1);
+  }
+  .ch-content th { color: #00d4ff; font-weight: normal; }
+  .ch-content .row-hi { background: rgba(0,255,136,0.08); color: #00ff88; }
+  .ch-content .row-warn { background: rgba(255,180,0,0.08); color: #ffcc66; }
+  .ch-content .row-bad { background: rgba(255,80,80,0.08); color: #ff8888; }
+  .ch-content code {
+    background: rgba(0,200,255,0.08);
+    padding: 1px 4px;
+    border-radius: 2px;
+    color: #88ddff;
+    font-size: 10px;
+  }
+  .ch-content button.ch-run {
+    background: rgba(0,180,255,0.18);
+    border: 1px solid rgba(0,180,255,0.45);
+    color: #00d4ff;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    margin: 4px 4px 4px 0;
+  }
+  .ch-content button.ch-run:hover { background: rgba(0,180,255,0.35); }
+  .rule-fired {
+    background: rgba(255,200,0,0.18);
+    border-left: 2px solid #ffcc00;
+    padding: 4px 8px;
+    margin: 4px 0;
+    color: #ffe488;
+  }
+  .rule-idle {
+    color: #556677;
+    padding: 4px 8px;
+    margin: 4px 0;
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
@@ -200,7 +293,7 @@
     <h3>🌬 Tham số</h3>
     <div class="slider-row">
       <div class="slider-label"><span>Tốc độ gió</span><b id="v-wind">5 m/s</b></div>
-      <input type="range" id="s-wind" min="0" max="25" value="5" oninput="onWindChange(this.value)">
+      <input type="range" id="s-wind" min="0" max="30" value="5" oninput="onWindChange(this.value)">
     </div>
     <div class="slider-row">
       <div class="slider-label"><span>Số obstacles</span><b id="v-obs-count">25</b></div>
@@ -216,6 +309,22 @@
       <div style="margin-top:6px; color:#aaa">State: 12×12×5 = 720 nodes</div>
       <div>Path: <b id="path-len" style="color:#00ff88">–</b> bước</div>
       <div>Cost: <b id="path-cost" style="color:#ffcc00">–</b></div>
+    </div>
+  </div>
+
+  <div class="panel" id="ch-panel">
+    <h3>📚 9 Chương TTNT</h3>
+    <div class="ch-tabs">
+      <button class="ch-tab active" data-ch="2" onclick="showChapter(2)">Ch2</button>
+      <button class="ch-tab" data-ch="3" onclick="showChapter(3)">Ch3</button>
+      <button class="ch-tab" data-ch="4" onclick="showChapter(4)">Ch4</button>
+      <button class="ch-tab" data-ch="5" onclick="showChapter(5)">Ch5</button>
+      <button class="ch-tab" data-ch="6" onclick="showChapter(6)">Ch6</button>
+      <button class="ch-tab" data-ch="78" onclick="showChapter(78)">Ch7-8</button>
+      <button class="ch-tab" data-ch="9" onclick="showChapter(9)">Ch9</button>
+    </div>
+    <div class="ch-content" id="ch-content">
+      <em>Đang tải nội dung chương...</em>
     </div>
   </div>
 </div>
@@ -592,57 +701,25 @@ function runAstar() {
   pathMeshes.forEach(m => scene.remove(m));
   pathMeshes = [];
 
-  const t0 = performance.now();
-  const start = startCell, goal = goalCell;
-  const open = new MinHeap();
-  const gScore = {};
-  const cameFrom = {};
-  const closed = new Set();
-  let expanded = 0;
-  const key = p => p.join(',');
-
-  gScore[key(start)] = 0;
-  open.push([heuristic(start, goal), start]);
-
-  while (open.size > 0) {
-    const [f, cur] = open.pop();
-    const ck = key(cur);
-    if (closed.has(ck)) continue;
-    closed.add(ck);
-    expanded++;
-
-    if (ck === key(goal)) {
-      const path = [];
-      let node = ck;
-      while (node) {
-        path.unshift(node.split(',').map(Number));
-        node = cameFrom[node];
-      }
-      const elapsed = (performance.now() - t0).toFixed(2);
-      drawPath(path);
-      foundPath = path;
-      document.getElementById('path-len').textContent = path.length;
-      document.getElementById('path-cost').textContent = gScore[key(goal)].toFixed(2);
-      document.getElementById('s-path').textContent = path.length;
-      document.getElementById('s-time').textContent = elapsed + 'ms';
-      document.getElementById('s-expanded').textContent = expanded;
-      document.getElementById('step-info').textContent =
-        `✅ A* tìm được: ${path.length} bước, cost=${gScore[key(goal)].toFixed(2)} — Bay UAV để xem animation`;
-      // Reset battery to 100% for new mission
-      battery = 100;
-      updateBatteryDisplay();
-      return true;
-    }
-
-    for (const { pos: nb, cost } of getNeighbors(...cur)) {
-      const ng = (gScore[ck] || 0) + cost;
-      if (ng < (gScore[key(nb)] ?? Infinity)) {
-        gScore[key(nb)] = ng;
-        cameFrom[key(nb)] = ck;
-        open.push([ng + heuristic(nb, goal), nb]);
-      }
-    }
+  // Use the same A* implementation as the 9-chapter panel so reported cost,
+  // vertical climb penalty, and expanded-node count stay consistent everywhere.
+  const result = aStarFull(startCell, goalCell, HEURISTICS.euclidean);
+  if (result.found) {
+    drawPath(result.path);
+    foundPath = result.path;
+    document.getElementById('path-len').textContent = result.path.length;
+    document.getElementById('path-cost').textContent = result.cost.toFixed(2);
+    document.getElementById('s-path').textContent = result.path.length;
+    document.getElementById('s-time').textContent = result.time.toFixed(2) + 'ms';
+    document.getElementById('s-expanded').textContent = result.expanded;
+    document.getElementById('step-info').textContent =
+      `✅ A* tìm được: ${result.path.length} bước, cost=${result.cost.toFixed(2)} — Bay UAV để xem animation`;
+    // Reset battery to 100% for new mission
+    battery = 100;
+    updateBatteryDisplay();
+    return true;
   }
+
   document.getElementById('step-info').textContent = '❌ Không tìm được đường! Giảm obstacles hoặc tắt NFZ';
   return false;
 }
@@ -944,6 +1021,1051 @@ document.addEventListener('keydown', e => {
 });
 
 // ============================================================
+//   CHAPTER 2-9: TTNT MODULES (PORT TỪ src/ PYTHON)
+// ============================================================
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 3 — Graph Search (BFS, DFS, Greedy BFS)
+// ─────────────────────────────────────────────────────────
+
+function _reconstructPath(cameFrom, current) {
+  const path = [current.split(',').map(Number)];
+  while (cameFrom[current]) {
+    current = cameFrom[current];
+    path.push(current.split(',').map(Number));
+  }
+  return path.reverse();
+}
+
+function _pathCost(path) {
+  // step_cost theo Python grid_world.py: euclidean + 0.5 vertical_penalty khi leo cao
+  let total = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const [x1,y1,z1] = path[i], [x2,y2,z2] = path[i+1];
+    const d = Math.sqrt((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2);
+    const climb = (z2 > z1) ? 0.5 : 0.0;
+    total += d + climb;
+  }
+  return total;
+}
+
+function bfs(startArr, goalArr) {
+  const t0 = performance.now();
+  const startKey = startArr.join(','), goalKey = goalArr.join(',');
+  if (startKey === goalKey) return { path: [startArr], cost: 0, expanded: 0, time: 0, algorithm: 'BFS', found: true };
+
+  const frontier = [startArr];
+  const explored = new Set();
+  const inFrontier = new Set([startKey]);
+  const cameFrom = {};
+  let expanded = 0;
+
+  while (frontier.length) {
+    const cur = frontier.shift();
+    const ck = cur.join(',');
+    inFrontier.delete(ck);
+
+    if (ck === goalKey) {
+      const path = _reconstructPath(cameFrom, ck);
+      return { path, cost: _pathCost(path), expanded, time: performance.now() - t0, algorithm: 'BFS', found: true };
+    }
+    explored.add(ck);
+    expanded++;
+
+    for (const { pos: nb } of getNeighbors(...cur)) {
+      const nk = nb.join(',');
+      if (explored.has(nk) || inFrontier.has(nk)) continue;
+      cameFrom[nk] = ck;
+      frontier.push(nb);
+      inFrontier.add(nk);
+    }
+  }
+  return { path: [], cost: Infinity, expanded, time: performance.now() - t0, algorithm: 'BFS', found: false };
+}
+
+function dfs(startArr, goalArr) {
+  const t0 = performance.now();
+  const startKey = startArr.join(','), goalKey = goalArr.join(',');
+  if (startKey === goalKey) return { path: [startArr], cost: 0, expanded: 0, time: 0, algorithm: 'DFS', found: true };
+
+  const stack = [startArr];
+  const explored = new Set();
+  const inStack = new Set([startKey]);
+  const cameFrom = {};
+  let expanded = 0;
+
+  while (stack.length) {
+    const cur = stack.pop();
+    const ck = cur.join(',');
+    inStack.delete(ck);
+
+    if (ck === goalKey) {
+      const path = _reconstructPath(cameFrom, ck);
+      return { path, cost: _pathCost(path), expanded, time: performance.now() - t0, algorithm: 'DFS', found: true };
+    }
+    explored.add(ck);
+    expanded++;
+
+    for (const { pos: nb } of getNeighbors(...cur)) {
+      const nk = nb.join(',');
+      if (explored.has(nk) || inStack.has(nk)) continue;
+      cameFrom[nk] = ck;
+      stack.push(nb);
+      inStack.add(nk);
+    }
+  }
+  return { path: [], cost: Infinity, expanded, time: performance.now() - t0, algorithm: 'DFS', found: false };
+}
+
+function greedyBFS(startArr, goalArr, hFn) {
+  const t0 = performance.now();
+  hFn = hFn || HEURISTICS.euclidean;
+  const startKey = startArr.join(','), goalKey = goalArr.join(',');
+  if (startKey === goalKey) return { path: [startArr], cost: 0, expanded: 0, time: 0, algorithm: 'Greedy BFS', found: true };
+
+  const open = new MinHeap();
+  open.push([hFn(startArr, goalArr), startArr]);
+  const closed = new Set();
+  const cameFrom = {};
+  let expanded = 0;
+
+  while (open.size > 0) {
+    const [_, cur] = open.pop();
+    const ck = cur.join(',');
+    if (closed.has(ck)) continue;
+    closed.add(ck);
+    expanded++;
+
+    if (ck === goalKey) {
+      const path = _reconstructPath(cameFrom, ck);
+      return { path, cost: _pathCost(path), expanded, time: performance.now() - t0, algorithm: 'Greedy BFS', found: true };
+    }
+
+    for (const { pos: nb } of getNeighbors(...cur)) {
+      const nk = nb.join(',');
+      if (closed.has(nk)) continue;
+      if (!(nk in cameFrom) && nk !== startKey) cameFrom[nk] = ck;
+      open.push([hFn(nb, goalArr), nb]);
+    }
+  }
+  return { path: [], cost: Infinity, expanded, time: performance.now() - t0, algorithm: 'Greedy BFS', found: false };
+}
+
+// A* với heuristic + step_cost (gồm vertical_penalty) — phiên bản đồng bộ với Python
+function aStarFull(startArr, goalArr, hFn) {
+  const t0 = performance.now();
+  hFn = hFn || HEURISTICS.euclidean;
+  const startKey = startArr.join(','), goalKey = goalArr.join(',');
+  if (startKey === goalKey) return { path: [startArr], cost: 0, expanded: 0, time: 0, algorithm: 'A*', found: true };
+
+  const open = new MinHeap();
+  let counter = 0;
+  open.push([hFn(startArr, goalArr), counter++, startArr]);
+  const gScore = { [startKey]: 0 };
+  const cameFrom = {};
+  const closed = new Set();
+  let expanded = 0;
+
+  while (open.size > 0) {
+    const top = open.pop();
+    const cur = top[2];
+    const ck = cur.join(',');
+    if (closed.has(ck)) continue;
+    closed.add(ck);
+    expanded++;
+
+    if (ck === goalKey) {
+      const path = _reconstructPath(cameFrom, ck);
+      return { path, cost: _pathCost(path), expanded, time: performance.now() - t0, algorithm: 'A*', found: true };
+    }
+
+    for (const { pos: nb } of getNeighbors(...cur)) {
+      const nk = nb.join(',');
+      if (closed.has(nk)) continue;
+      // step_cost với vertical_penalty
+      const [x1,y1,z1] = cur, [x2,y2,z2] = nb;
+      const d = Math.sqrt((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2);
+      const climb = (z2 > z1) ? 0.5 : 0.0;
+      const tentativeG = gScore[ck] + d + climb;
+      if (tentativeG < (gScore[nk] ?? Infinity)) {
+        gScore[nk] = tentativeG;
+        cameFrom[nk] = ck;
+        open.push([tentativeG + hFn(nb, goalArr), counter++, nb]);
+      }
+    }
+  }
+  return { path: [], cost: Infinity, expanded, time: performance.now() - t0, algorithm: 'A*', found: false };
+}
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 4 — Heuristics + Local Search (SA, GA)
+// ─────────────────────────────────────────────────────────
+
+const HEURISTICS = {
+  euclidean: (a, b) => Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2),
+  manhattan: (a, b) => Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]) + Math.abs(a[2]-b[2]),
+  wind: (a, b) => {
+    // Wind-adjusted (Ch4): xuôi gió giảm chi phí ước lượng
+    const base = HEURISTICS.euclidean(a, b);
+    if (base < 1e-9) return 0;
+    const dx = (b[0]-a[0])/base, dy = (b[1]-a[1])/base, dz = (b[2]-a[2])/base;
+    // Giả định gió theo trục +x (từ slider) — chỉ phần X
+    const wEffect = dx * (windSpeed / 25); // normalize windSpeed
+    const divisor = 1 + Math.max(wEffect, 0) * 0.3;
+    return base / divisor;
+  },
+  energy: (a, b) => {
+    // Energy-based: leo cao tốn thêm
+    const dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];
+    const horiz = Math.sqrt(dx*dx + dy*dy);
+    const vertPenalty = Math.max(dz, 0) * 0.5; // climb_penalty - 1.0
+    return horiz + Math.abs(dz) + vertPenalty;
+  },
+  zero: () => 0, // = Dijkstra
+};
+
+// Simulated Annealing: tối ưu thứ tự waypoint trên path đã có
+function simulatedAnnealing(initialPath, maxIter = 1000) {
+  if (!initialPath || initialPath.length < 4) return { path: initialPath, cost: _pathCost(initialPath || []), iterations: 0 };
+  let current = initialPath.slice();
+  let currentCost = _pathCost(current);
+  let best = current.slice(), bestCost = currentCost;
+  let T = 1.0, alpha = 0.995, Tmin = 0.001;
+  let iter = 0;
+
+  // SA chỉ swap các waypoint giữa (giữ start + goal)
+  while (T > Tmin && iter < maxIter) {
+    iter++;
+    // Perturb: shortcut 2 cells liền nhau nếu khoảng cách euclid < 1.8
+    const candidate = current.slice();
+    if (candidate.length > 3) {
+      const i = 1 + Math.floor(Math.random() * (candidate.length - 3));
+      // Bỏ 1 cell giữa nếu không phá vỡ
+      const [a, , c] = [candidate[i-1], candidate[i], candidate[i+1]];
+      // Kiểm tra nhảy thẳng a→c có hợp lệ không (không bay xuyên obstacle)
+      const dx = Math.abs(c[0]-a[0]), dy = Math.abs(c[1]-a[1]), dz = Math.abs(c[2]-a[2]);
+      if (Math.max(dx, dy, dz) <= 1 && !obstacleSet.has(c.join(','))) {
+        candidate.splice(i, 1);
+      }
+    }
+    const candCost = _pathCost(candidate);
+    const dE = candCost - currentCost;
+    if (dE < 0 || Math.random() < Math.exp(-dE / T)) {
+      current = candidate;
+      currentCost = candCost;
+      if (candCost < bestCost) { best = candidate.slice(); bestCost = candCost; }
+    }
+    T *= alpha;
+  }
+  return { path: best, cost: bestCost, iterations: iter, algorithm: 'Simulated Annealing' };
+}
+
+// Genetic Algorithm: tiến hóa quần thể path
+function geneticAlgorithm(startArr, goalArr, popSize = 20, generations = 40) {
+  // Mỗi chromosome = path (list of cells)
+  // Khởi tạo bằng A* + biến đổi nhỏ
+  const baseRes = aStarFull(startArr, goalArr);
+  if (!baseRes.found) return { path: [], cost: Infinity, generations: 0, algorithm: 'GA' };
+  const basePath = baseRes.path;
+
+  function mutate(path) {
+    if (path.length < 4) return path;
+    const i = 1 + Math.floor(Math.random() * (path.length - 2));
+    // Thử thay cell[i] bằng neighbor hợp lệ
+    const neighbors = getNeighbors(...path[i-1]).map(n => n.pos);
+    if (neighbors.length === 0) return path;
+    const cand = neighbors[Math.floor(Math.random() * neighbors.length)];
+    // Chỉ giữ nếu cand đến được path[i+1]
+    if (i + 1 < path.length) {
+      const dx = Math.abs(cand[0]-path[i+1][0]);
+      const dy = Math.abs(cand[1]-path[i+1][1]);
+      const dz = Math.abs(cand[2]-path[i+1][2]);
+      if (Math.max(dx, dy, dz) <= 1) {
+        const out = path.slice();
+        out[i] = cand;
+        return out;
+      }
+    }
+    return path;
+  }
+
+  function fitness(path) { return -_pathCost(path); }
+
+  let pop = [];
+  for (let i = 0; i < popSize; i++) {
+    let p = basePath.slice();
+    for (let m = 0; m < 3; m++) p = mutate(p);
+    pop.push(p);
+  }
+
+  for (let g = 0; g < generations; g++) {
+    pop.sort((a, b) => fitness(b) - fitness(a));
+    const elite = pop.slice(0, Math.max(2, popSize / 4));
+    const newPop = elite.slice();
+    while (newPop.length < popSize) {
+      const parent = elite[Math.floor(Math.random() * elite.length)];
+      newPop.push(mutate(parent));
+    }
+    pop = newPop;
+  }
+  pop.sort((a, b) => fitness(b) - fitness(a));
+  return { path: pop[0], cost: _pathCost(pop[0]), generations, algorithm: 'GA' };
+}
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 5 — Propositional Logic + KB-Agent
+// ─────────────────────────────────────────────────────────
+
+const SAFETY_RULES = [
+  {
+    id: 'R1', name: 'Avoid Obstacle', priority: 1,
+    description: 'ObstacleDetected → Avoid',
+    condition: f => f.obstacle_detected === true,
+    action: 'AVOID',
+  },
+  {
+    id: 'R5', name: 'Exit No-Fly Zone', priority: 2,
+    description: 'InNoFlyZone → ExitImmediately',
+    condition: f => f.in_no_fly_zone === true,
+    action: 'EXIT_NFZ',
+  },
+  {
+    id: 'R4', name: 'Land — Wind Dangerous', priority: 3,
+    description: 'WindDangerous → Land',
+    condition: f => f.wind_dangerous === true,
+    action: 'LAND',
+  },
+  {
+    id: 'R2', name: 'Return Home — Battery Low', priority: 4,
+    description: 'BatteryLow ∧ ¬NearCharger → ReturnHome',
+    condition: f => f.battery_low === true && f.near_charger !== true,
+    action: 'RETURN_HOME',
+  },
+  {
+    id: 'R3', name: 'Reduce Speed — Wind High', priority: 5,
+    description: 'WindHigh ∧ ¬WindDangerous → ReduceSpeed',
+    condition: f => f.wind_high === true && f.wind_dangerous !== true,
+    action: 'REDUCE_SPEED',
+  },
+  {
+    id: 'R6', name: 'Continue — All Clear', priority: 6,
+    description: '¬Obstacle ∧ ¬NFZ ∧ OnPath → Continue',
+    condition: f => f.obstacle_detected !== true && f.in_no_fly_zone !== true && f.on_path === true,
+    action: 'CONTINUE',
+  },
+];
+
+class KnowledgeBase {
+  constructor() { this.facts = {}; this.history = []; }
+  tell(key, value, t = 0) { this.facts[key] = value; this.history.push([t, key, value]); }
+  ask(query) {
+    if (query === 'action') return evaluateRules(this.facts);
+    return this.facts[query];
+  }
+  retract(key) { delete this.facts[key]; }
+  tellPercept(percept, t = 0) {
+    for (const [k, v] of Object.entries(percept)) this.tell(k, v, t);
+    if ('battery' in percept) {
+      this.tell('battery_low', percept.battery < 20, t);
+      this.tell('battery_critical', percept.battery < 10, t);
+    }
+    if ('wind_speed' in percept) {
+      this.tell('wind_high', percept.wind_speed > 15, t);
+      this.tell('wind_dangerous', percept.wind_speed > 25, t);
+    }
+  }
+}
+
+function evaluateRules(facts) {
+  for (const rule of SAFETY_RULES) {
+    try { if (rule.condition(facts)) return rule.action; } catch (e) {}
+  }
+  return 'CONTINUE';
+}
+
+function explainAction(facts) {
+  for (const rule of SAFETY_RULES) {
+    try {
+      if (rule.condition(facts)) {
+        return { action: rule.action, rule_id: rule.id, rule_name: rule.name, description: rule.description };
+      }
+    } catch (e) {}
+  }
+  return { action: 'CONTINUE', rule_id: 'DEFAULT', rule_name: 'Default', description: 'Không rule match → Continue' };
+}
+
+const kbAgent = new KnowledgeBase();
+let currentFiredRule = null;  // Lưu rule đang fire (cập nhật live khi bay)
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 6 — First-Order Logic Predicates
+// ─────────────────────────────────────────────────────────
+
+const FOL_PREDICATES = {
+  Obstacle: (x, y, z) => obstacleSet.has(`${x},${y},${z}`) && !nfzCells.some(c => c[0]===x && c[1]===y && c[2]===z),
+  NoFlyZone: (x, y, z) => nfzActive && nfzCells.some(c => c[0]===x && c[1]===y && c[2]===z),
+  InBounds: (x, y, z) => x >= 0 && x < GRID_W && y >= 0 && y < GRID_H && z >= 0 && z < GRID_Z,
+  Safe: (x, y, z) => FOL_PREDICATES.InBounds(x,y,z) && !FOL_PREDICATES.Obstacle(x,y,z) && !FOL_PREDICATES.NoFlyZone(x,y,z),
+  At: (uavPos, x, y, z) => uavPos && uavPos[0]===x && uavPos[1]===y && uavPos[2]===z,
+  CanFly: (uavPos, x, y, z) => FOL_PREDICATES.Safe(x,y,z), // có thể mở rộng
+};
+
+// Universal quantifier: ∀ cell. Safe(cell) (chỉ true nếu mọi cell free đều safe)
+function folAllSafe() {
+  for (let x = 0; x < GRID_W; x++) {
+    for (let y = 0; y < GRID_H; y++) {
+      for (let z = 0; z < GRID_Z; z++) {
+        if (!FOL_PREDICATES.Safe(x, y, z)) return false;
+      }
+    }
+  }
+  return true;
+}
+
+// Existential: ∃ cell. Obstacle(cell) ∧ NearGoal(cell)
+function folObstacleNearGoal(radius = 2) {
+  const [gx, gy, gz] = goalCell;
+  for (const k of obstacleSet) {
+    const [x, y, z] = k.split(',').map(Number);
+    const d = Math.sqrt((x-gx)**2 + (y-gy)**2 + (z-gz)**2);
+    if (d <= radius) return [x, y, z];
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 7+8 — Bayesian Network + MEU
+// ─────────────────────────────────────────────────────────
+
+const BN = {
+  Weather: {
+    parents: [],
+    values: ['Clear', 'Cloudy', 'Rainy', 'Stormy'],
+    cpt: { Clear: 0.40, Cloudy: 0.30, Rainy: 0.20, Stormy: 0.10 }
+  },
+  BatteryLevel: {
+    parents: [],
+    values: ['Full', 'Medium', 'Low', 'Critical'],
+    cpt: { Full: 0.35, Medium: 0.40, Low: 0.20, Critical: 0.05 }
+  },
+  WindSpeed: {
+    parents: ['Weather'],
+    values: ['Low', 'Medium', 'High', 'Dangerous'],
+    cpt: {
+      Clear:  { Low: 0.60, Medium: 0.30, High: 0.08, Dangerous: 0.02 },
+      Cloudy: { Low: 0.30, Medium: 0.40, High: 0.20, Dangerous: 0.10 },
+      Rainy:  { Low: 0.10, Medium: 0.30, High: 0.40, Dangerous: 0.20 },
+      Stormy: { Low: 0.05, Medium: 0.15, High: 0.30, Dangerous: 0.50 },
+    }
+  },
+  FlightRange: {
+    parents: ['BatteryLevel'],
+    values: ['Long', 'Medium', 'Short'],
+    cpt: {
+      Full:     { Long: 0.80, Medium: 0.18, Short: 0.02 },
+      Medium:   { Long: 0.30, Medium: 0.60, Short: 0.10 },
+      Low:      { Long: 0.05, Medium: 0.35, Short: 0.60 },
+      Critical: { Long: 0.01, Medium: 0.09, Short: 0.90 },
+    }
+  },
+  FlightSafety: {
+    parents: ['WindSpeed', 'FlightRange'],
+    values: ['Safe', 'Risky', 'Dangerous'],
+    cpt: {
+      'Low,Long':     { Safe: 0.90, Risky: 0.08, Dangerous: 0.02 },
+      'Low,Medium':   { Safe: 0.80, Risky: 0.15, Dangerous: 0.05 },
+      'Low,Short':    { Safe: 0.60, Risky: 0.30, Dangerous: 0.10 },
+      'Medium,Long':  { Safe: 0.70, Risky: 0.25, Dangerous: 0.05 },
+      'Medium,Medium':{ Safe: 0.50, Risky: 0.38, Dangerous: 0.12 },
+      'Medium,Short': { Safe: 0.30, Risky: 0.45, Dangerous: 0.25 },
+      'High,Long':    { Safe: 0.30, Risky: 0.50, Dangerous: 0.20 },
+      'High,Medium':  { Safe: 0.15, Risky: 0.45, Dangerous: 0.40 },
+      'High,Short':   { Safe: 0.05, Risky: 0.25, Dangerous: 0.70 },
+      'Dangerous,Long':  { Safe: 0.05, Risky: 0.25, Dangerous: 0.70 },
+      'Dangerous,Medium':{ Safe: 0.02, Risky: 0.13, Dangerous: 0.85 },
+      'Dangerous,Short': { Safe: 0.01, Risky: 0.04, Dangerous: 0.95 },
+    }
+  },
+  PathDecision: {
+    parents: ['FlightSafety'],
+    values: ['DirectPath', 'SafePath', 'ReturnHome', 'Land'],
+    cpt: {
+      Safe:      { DirectPath: 0.70, SafePath: 0.20, ReturnHome: 0.05, Land: 0.05 },
+      Risky:     { DirectPath: 0.10, SafePath: 0.50, ReturnHome: 0.30, Land: 0.10 },
+      Dangerous: { DirectPath: 0.00, SafePath: 0.10, ReturnHome: 0.30, Land: 0.60 },
+    }
+  },
+};
+
+const BN_TOPO = ['Weather', 'BatteryLevel', 'WindSpeed', 'FlightRange', 'FlightSafety', 'PathDecision'];
+
+function _bnNodeProb(name, value, evidence) {
+  const node = BN[name];
+  if (node.parents.length === 0) {
+    return node.cpt[value] || 0;
+  }
+  const parentVals = node.parents.map(p => evidence[p] || node.values[0]);
+  const key = parentVals.length === 1 ? parentVals[0] : parentVals.join(',');
+  const row = node.cpt[key] || {};
+  return row[value] || 0;
+}
+
+function _enumerateAll(variables, evidence) {
+  if (variables.length === 0) return 1.0;
+  const [v, ...rest] = variables;
+  const node = BN[v];
+  if (v in evidence) {
+    return _bnNodeProb(v, evidence[v], evidence) * _enumerateAll(rest, evidence);
+  } else {
+    let total = 0;
+    for (const val of node.values) {
+      const ev2 = { ...evidence, [v]: val };
+      total += _bnNodeProb(v, val, ev2) * _enumerateAll(rest, ev2);
+    }
+    return total;
+  }
+}
+
+function bnQuery(target, evidence) {
+  const result = {};
+  for (const val of BN[target].values) {
+    const ev = { ...evidence, [target]: val };
+    result[val] = _enumerateAll(BN_TOPO, ev);
+  }
+  const total = Object.values(result).reduce((a, b) => a + b, 0);
+  if (total > 0) for (const k in result) result[k] = result[k] / total;
+  return result;
+}
+
+// MEU
+const UTILITY_TABLE = {
+  reach_goal_safe: 100,
+  reach_goal_slow: 50,
+  return_home_safe: 10,
+  emergency_land: -20,
+  collision: -1000,
+  battery_dead_midair: -500,
+};
+
+const ACTION_OUTCOME_PROBS = {
+  fly_direct: {
+    Safe:      { reach_goal_safe: 0.90, reach_goal_slow: 0.05, emergency_land: 0.03, collision: 0.02, return_home_safe: 0,    battery_dead_midair: 0 },
+    Risky:     { reach_goal_safe: 0.45, reach_goal_slow: 0.15, emergency_land: 0.15, collision: 0.20, return_home_safe: 0.05, battery_dead_midair: 0 },
+    Dangerous: { reach_goal_safe: 0.05, reach_goal_slow: 0.05, emergency_land: 0.20, collision: 0.60, return_home_safe: 0.05, battery_dead_midair: 0.05 },
+  },
+  fly_safe: {
+    Safe:      { reach_goal_safe: 0.70, reach_goal_slow: 0.25, emergency_land: 0.02, collision: 0.01, return_home_safe: 0.02, battery_dead_midair: 0 },
+    Risky:     { reach_goal_safe: 0.50, reach_goal_slow: 0.35, emergency_land: 0.08, collision: 0.05, return_home_safe: 0.02, battery_dead_midair: 0 },
+    Dangerous: { reach_goal_safe: 0.20, reach_goal_slow: 0.30, emergency_land: 0.25, collision: 0.15, return_home_safe: 0.05, battery_dead_midair: 0.05 },
+  },
+  return_home: {
+    Safe:      { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.02, collision: 0,    return_home_safe: 0.95, battery_dead_midair: 0.03 },
+    Risky:     { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.05, collision: 0.05, return_home_safe: 0.85, battery_dead_midair: 0.05 },
+    Dangerous: { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.15, collision: 0.10, return_home_safe: 0.60, battery_dead_midair: 0.15 },
+  },
+  land: {
+    Safe:      { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.90, collision: 0,    return_home_safe: 0, battery_dead_midair: 0.10 },
+    Risky:     { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.90, collision: 0.02, return_home_safe: 0, battery_dead_midair: 0.08 },
+    Dangerous: { reach_goal_safe: 0, reach_goal_slow: 0, emergency_land: 0.85, collision: 0.05, return_home_safe: 0, battery_dead_midair: 0.10 },
+  },
+};
+
+const MEU_ACTIONS = ['fly_direct', 'fly_safe', 'return_home', 'land'];
+
+function expectedUtility(action, safetyDist) {
+  let eu = 0;
+  const table = ACTION_OUTCOME_PROBS[action] || {};
+  for (const safetyVal of BN.FlightSafety.values) {
+    const pSafety = safetyDist[safetyVal] || 0;
+    const outcomes = table[safetyVal] || {};
+    for (const [outcome, pOut] of Object.entries(outcomes)) {
+      eu += pSafety * pOut * (UTILITY_TABLE[outcome] || 0);
+    }
+  }
+  return eu;
+}
+
+function meuDecide(evidence) {
+  const safetyDist = bnQuery('FlightSafety', evidence);
+  let best = null, bestEU = -Infinity;
+  const allEU = {};
+  for (const a of MEU_ACTIONS) {
+    const eu = expectedUtility(a, safetyDist);
+    allEU[a] = eu;
+    if (eu > bestEU) { bestEU = eu; best = a; }
+  }
+  return { action: best, eu: bestEU, allEU, safetyDist };
+}
+
+// Helper: chuyển trạng thái hiện tại (battery + windSpeed) thành evidence cho BN
+function currentBNEvidence() {
+  // Weather suy từ wind: <5 Clear, <10 Cloudy, <20 Rainy, >=20 Stormy
+  let weather = 'Clear';
+  if (windSpeed >= 20) weather = 'Stormy';
+  else if (windSpeed >= 10) weather = 'Rainy';
+  else if (windSpeed >= 5) weather = 'Cloudy';
+
+  let batteryLevel = 'Full';
+  if (battery < 10) batteryLevel = 'Critical';
+  else if (battery < 30) batteryLevel = 'Low';
+  else if (battery < 70) batteryLevel = 'Medium';
+
+  return { Weather: weather, BatteryLevel: batteryLevel };
+}
+
+// ─────────────────────────────────────────────────────────
+//   Chapter 9 — Learning (Decision Tree + Regression + Q-Learning)
+// ─────────────────────────────────────────────────────────
+
+// Decision Tree — rule-based fallback (giống Python khi không có sklearn)
+function dtPredict(features) {
+  // features: [wind, battery, visibility, obstacleDensity, altitude]
+  const [wind, bat, vis, obsD] = features;
+  if (wind > 25 || bat < 10) return 'LAND';
+  if (obsD > 0.3) return 'AVOID';
+  if (wind > 15 || vis < 30 || bat < 20) return 'CAREFUL';
+  return 'FLY';
+}
+
+// Linear Regression — physics formula (port từ Python _simulate_flight_time)
+function regressionPredict(features) {
+  const [dist, wind, bat, payload, altChg] = features;
+  const BASE_SPEED = 10.0, GRID_SCALE = 5.0;
+  const windF = Math.max(0.2, 1 - wind / 60);
+  const batF = Math.max(0.3, bat / 100);
+  const payloadF = Math.max(0.5, 1 - payload / 20);
+  const altPen = 1 + altChg / 100;
+  const speed = BASE_SPEED * windF * batF * payloadF;
+  const distM = dist * GRID_SCALE;
+  return (distM / speed) * altPen / 60; // phút
+}
+
+// Q-Learning — train nhanh trong browser
+class QLearningJS {
+  constructor(alpha = 0.1, gamma = 0.95, epsilon = 1.0) {
+    this.alpha = alpha; this.gamma = gamma;
+    this.epsilon = epsilon; this.epsilonMin = 0.05; this.epsilonDecay = 0.99;
+    this.Q = new Map(); // key: "x,y,z,a", value: number
+    this.actions = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+    this.stats = { episodes: 0, goalReached: 0, totalReward: 0 };
+    this.goal = null;
+  }
+  _key(s, a) { return `${s[0]},${s[1]},${s[2]},${a}`; }
+  _q(s, a) { return this.Q.get(this._key(s, a)) || 0; }
+  _bestAction(s) {
+    let best = 0, bestQ = this._q(s, 0);
+    for (let a = 1; a < 6; a++) {
+      const q = this._q(s, a);
+      if (q > bestQ) { bestQ = q; best = a; }
+    }
+    return [best, bestQ];
+  }
+  _step(s, a) {
+    const d = this.actions[a];
+    const ns = [
+      Math.max(0, Math.min(GRID_W-1, s[0] + d[0])),
+      Math.max(0, Math.min(GRID_H-1, s[1] + d[1])),
+      Math.max(0, Math.min(GRID_Z-1, s[2] + d[2])),
+    ];
+    return ns;
+  }
+  _reward(ns, prev) {
+    const key = ns.join(',');
+    if (obstacleSet.has(key)) {
+      // NFZ riêng?
+      if (nfzCells.some(c => c[0]===ns[0] && c[1]===ns[1] && c[2]===ns[2])) return -500;
+      return -1000;
+    }
+    let r = -1;
+    if (this.goal) {
+      const prevDist = HEURISTICS.euclidean(prev, this.goal);
+      const nextDist = HEURISTICS.euclidean(ns, this.goal);
+      r += (prevDist - nextDist) * 8;
+    }
+    if (ns[0] === prev[0] && ns[1] === prev[1] && ns[2] === prev[2]) r -= 3;
+    if (ns[2] > prev[2]) r -= 2;
+    return r;
+  }
+  train(start, goal, episodes = 300) {
+    const t0 = performance.now();
+    this.goal = goal.slice();
+    this.stats.episodes = 0; this.stats.goalReached = 0; this.stats.totalReward = 0;
+    for (let ep = 0; ep < episodes; ep++) {
+      let s = start.slice();
+      let total = 0, steps = 0;
+      while ((s[0] !== goal[0] || s[1] !== goal[1] || s[2] !== goal[2]) && steps < 200) {
+        let a;
+        if (Math.random() < this.epsilon) a = Math.floor(Math.random() * 6);
+        else a = this._bestAction(s)[0];
+        const ns = this._step(s, a);
+        const goalHit = ns[0]===goal[0] && ns[1]===goal[1] && ns[2]===goal[2];
+        const r = goalHit ? 100 : this._reward(ns, s);
+        const [, maxNextQ] = this._bestAction(ns);
+        const k = this._key(s, a);
+        const curQ = this._q(s, a);
+        this.Q.set(k, curQ + this.alpha * (r + this.gamma * maxNextQ - curQ));
+        total += r;
+        s = ns;
+        steps++;
+        if (goalHit) { this.stats.goalReached++; break; }
+        if (r <= -1000) break;
+      }
+      this.epsilon = Math.max(this.epsilonMin, this.epsilon * this.epsilonDecay);
+      this.stats.episodes++;
+      this.stats.totalReward += total;
+    }
+    return {
+      episodes,
+      goal_reached: this.stats.goalReached,
+      success_rate: this.stats.goalReached / episodes,
+      time_ms: performance.now() - t0,
+      q_table_size: this.Q.size,
+      final_epsilon: this.epsilon,
+    };
+  }
+  getPath(start, goal, maxSteps = 200) {
+    let s = start.slice();
+    const path = [s.slice()];
+    const visited = new Set([s.join(',')]);
+    for (let i = 0; i < maxSteps; i++) {
+      if (s[0]===goal[0] && s[1]===goal[1] && s[2]===goal[2]) return path;
+      const [a] = this._bestAction(s);
+      const ns = this._step(s, a);
+      const k = ns.join(',');
+      if (visited.has(k)) {
+        // Thử action thứ 2
+        const qs = this.actions.map((_, i) => [this._q(s, i), i]);
+        qs.sort((x, y) => y[0] - x[0]);
+        let moved = false;
+        for (let j = 1; j < qs.length; j++) {
+          const tryNs = this._step(s, qs[j][1]);
+          if (!visited.has(tryNs.join(','))) {
+            path.push(tryNs.slice());
+            visited.add(tryNs.join(','));
+            s = tryNs;
+            moved = true;
+            break;
+          }
+        }
+        if (!moved) break;
+      } else {
+        path.push(ns.slice());
+        visited.add(k);
+        s = ns;
+      }
+    }
+    return path;
+  }
+}
+
+const qlAgent = new QLearningJS();
+let qlTrained = false;
+
+// ─────────────────────────────────────────────────────────
+//   Chapter Tab Renderer
+// ─────────────────────────────────────────────────────────
+
+function showChapter(ch) {
+  document.querySelectorAll('.ch-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.ch == String(ch));
+  });
+  const out = document.getElementById('ch-content');
+  switch (String(ch)) {
+    case '2':  out.innerHTML = renderCh2(); break;
+    case '3':  out.innerHTML = renderCh3(); break;
+    case '4':  out.innerHTML = renderCh4(); break;
+    case '5':  out.innerHTML = renderCh5(); break;
+    case '6':  out.innerHTML = renderCh6(); break;
+    case '78': out.innerHTML = renderCh78(); break;
+    case '9':  out.innerHTML = renderCh9(); break;
+    default:   out.innerHTML = '<em>Chương không tồn tại.</em>';
+  }
+}
+
+function renderCh2() {
+  return `
+    <h4>Ch2 — Intelligent Agent (PEAS)</h4>
+    <table>
+      <tr><th>P</th><td>Performance: cost path, an toàn, pin, thời gian</td></tr>
+      <tr><th>E</th><td>Environment: GridWorld3D ${GRID_W}×${GRID_H}×${GRID_Z}, dynamic obstacles + NFZ + gió</td></tr>
+      <tr><th>A</th><td>Actuators: di chuyển 6/26 hướng</td></tr>
+      <tr><th>S</th><td>Sensors: GPS, LIDAR, Wind, Battery</td></tr>
+    </table>
+    <h4>Phân loại môi trường</h4>
+    <div>Partially observable · Stochastic · Sequential · Dynamic · Discrete · Single-agent</div>
+    <h4>Learning Agent Architecture</h4>
+    <code>PERCEIVE → REASON → PLAN → ACT → LEARN</code>
+    <div style="margin-top:6px;color:#88aaaa">Áp dụng trong demo: percept (pin/gió/NFZ) → KB rules (Ch5) → A* plan (Ch3-4) → bay → Q-Learning học từ reward (Ch9).</div>
+  `;
+}
+
+function renderCh3() {
+  return `
+    <h4>Ch3 — Graph Search</h4>
+    <button class="ch-run" onclick="runAllSearch()">▶ So sánh BFS/DFS/Greedy/A*</button>
+    <div id="ch3-result"><em>Chưa chạy. Bấm nút trên.</em></div>
+    <h4>Pseudocode (theo AIMA)</h4>
+    <code>frontier ← start; explored ← {}; loop ...</code>
+    <div style="color:#88aaaa">BFS = FIFO queue, DFS = LIFO stack, Greedy/A* = priority queue theo f(n).</div>
+  `;
+}
+
+function renderCh4() {
+  return `
+    <h4>Ch4 — Heuristic + Local Search</h4>
+    <div>Heuristic so sánh trên A*:</div>
+    <button class="ch-run" onclick="runHeuristicCompare()">▶ Compare 5 heuristic</button>
+    <div id="ch4-h-result" style="margin-top:6px"><em>Chưa chạy.</em></div>
+    <h4>Local Search</h4>
+    <button class="ch-run" onclick="runSA()">▶ Simulated Annealing</button>
+    <button class="ch-run" onclick="runGA()">▶ Genetic Algorithm</button>
+    <div id="ch4-ls-result" style="margin-top:6px"><em>Chạy SA/GA sau khi có path A*.</em></div>
+  `;
+}
+
+function renderCh5() {
+  // Live update khi UAV bay
+  const ruleHTML = currentFiredRule
+    ? `<div class="rule-fired">🔥 <b>${currentFiredRule.rule_id}</b> — ${currentFiredRule.rule_name}<br><small>${currentFiredRule.description}</small><br>→ Action: <code>${currentFiredRule.action}</code></div>`
+    : `<div class="rule-idle">Chưa có rule nào fire. Bắt đầu bay (✈ Bay UAV) để xem live.</div>`;
+
+  return `
+    <h4>Ch5 — KB-Agent (TELL/ASK)</h4>
+    ${ruleHTML}
+    <h4>6 Safety Rules (priority)</h4>
+    <table>
+      ${SAFETY_RULES.map(r => `<tr><td><b>${r.id}</b></td><td>${r.name}</td></tr>`).join('')}
+    </table>
+    <h4>Current KB Facts</h4>
+    <div id="ch5-facts" style="font-size:10px;color:#88aaaa">
+      battery=${Math.round(battery)} · wind=${windSpeed} · obstacles=${obstacleSet.size} · nfz=${nfzActive}
+    </div>
+    <button class="ch-run" onclick="testKBNow()">▶ TELL+ASK với percept hiện tại</button>
+    <div id="ch5-test-result" style="margin-top:6px"></div>
+  `;
+}
+
+function renderCh6() {
+  const goalKey = goalCell.join(',');
+  const nearby = folObstacleNearGoal(2);
+  return `
+    <h4>Ch6 — First-Order Logic</h4>
+    <h4>Predicates trên grid hiện tại</h4>
+    <table>
+      <tr><td><code>Obstacle(${goalCell})</code></td><td>${FOL_PREDICATES.Obstacle(...goalCell)}</td></tr>
+      <tr><td><code>InBounds(${goalCell})</code></td><td>${FOL_PREDICATES.InBounds(...goalCell)}</td></tr>
+      <tr><td><code>Safe(${goalCell})</code></td><td>${FOL_PREDICATES.Safe(...goalCell)}</td></tr>
+      <tr><td><code>Safe(${startCell})</code></td><td>${FOL_PREDICATES.Safe(...startCell)}</td></tr>
+    </table>
+    <h4>Quantifiers</h4>
+    <table>
+      <tr><td><code>∀x. Safe(x)?</code></td><td>${folAllSafe() ? '<span style="color:#00ff88">TRUE</span>' : '<span style="color:#ff6666">FALSE</span>'}</td></tr>
+      <tr><td><code>∃x. Obstacle(x) ∧ NearGoal(x,2)?</code></td><td>${nearby ? `<span style="color:#ffcc00">TRUE — (${nearby.join(',')})</span>` : 'FALSE'}</td></tr>
+    </table>
+    <div style="color:#88aaaa;margin-top:6px;font-size:10px">Mapping: Wumpus World → UAV: <code>Stench≈LIDAR</code>, <code>Breeze≈WindSensor</code>, <code>Pit≈NoFlyZone</code>, <code>Gold≈Goal</code></div>
+  `;
+}
+
+function renderCh78() {
+  const ev = currentBNEvidence();
+  const safetyDist = bnQuery('FlightSafety', ev);
+  const meu = meuDecide(ev);
+
+  const safetyRows = Object.entries(safetyDist).map(([k, v]) => {
+    const cls = k === 'Safe' ? 'row-hi' : (k === 'Risky' ? 'row-warn' : 'row-bad');
+    return `<tr class="${cls}"><td>${k}</td><td>${(v*100).toFixed(1)}%</td></tr>`;
+  }).join('');
+
+  const euRows = MEU_ACTIONS.map(a => {
+    const cls = a === meu.action ? 'row-hi' : '';
+    return `<tr class="${cls}"><td>${a}${a === meu.action ? ' ← CHOSEN' : ''}</td><td>${meu.allEU[a].toFixed(2)}</td></tr>`;
+  }).join('');
+
+  return `
+    <h4>Ch7+8 — Bayesian Network + MEU</h4>
+    <h4>Evidence hiện tại</h4>
+    <table>
+      <tr><td>Weather</td><td>${ev.Weather} <small>(gió ${windSpeed})</small></td></tr>
+      <tr><td>BatteryLevel</td><td>${ev.BatteryLevel} <small>(${Math.round(battery)}%)</small></td></tr>
+    </table>
+    <h4>P(FlightSafety | evidence)</h4>
+    <table><tr><th>State</th><th>P</th></tr>${safetyRows}</table>
+    <h4>EU mỗi action (Maximum Expected Utility)</h4>
+    <table><tr><th>Action</th><th>EU</th></tr>${euRows}</table>
+    <div style="margin-top:6px;color:#00d4ff">→ MEU chọn: <b>${meu.action}</b> (EU=${meu.eu.toFixed(2)})</div>
+    <div style="color:#88aaaa;font-size:10px;margin-top:4px">Inference: exact enumeration P(target|e)=α·Σ_y P(target,e,y)</div>
+  `;
+}
+
+function renderCh9() {
+  // Auto-predict DT + Regression với features hiện tại
+  const obsDensity = obstacleSet.size / (GRID_W * GRID_H * GRID_Z);
+  const dtFeatures = [windSpeed, battery, 80 /* visibility giả định */, obsDensity, goalCell[2] * 1.5];
+  const dtLabel = dtPredict(dtFeatures);
+  const regFeatures = [
+    HEURISTICS.euclidean(startCell, goalCell),
+    windSpeed, battery, 1.0 /* payload */, goalCell[2]
+  ];
+  const flightTime = regressionPredict(regFeatures);
+
+  const qlStatus = qlTrained
+    ? `<span style="color:#00ff88">Q-table: ${qlAgent.Q.size} entries · ε=${qlAgent.epsilon.toFixed(3)}</span>`
+    : '<em>Chưa train.</em>';
+
+  return `
+    <h4>Ch9 — Learning</h4>
+    <h4>Decision Tree — Phân loại điều kiện bay</h4>
+    <table>
+      <tr><td>wind</td><td>${windSpeed} m/s</td></tr>
+      <tr><td>battery</td><td>${Math.round(battery)}%</td></tr>
+      <tr><td>obstacle_density</td><td>${(obsDensity*100).toFixed(1)}%</td></tr>
+      <tr class="${dtLabel === 'FLY' ? 'row-hi' : (dtLabel === 'CAREFUL' ? 'row-warn' : 'row-bad')}"><td><b>Predict</b></td><td><b>${dtLabel}</b></td></tr>
+    </table>
+    <h4>Linear Regression — Dự đoán thời gian bay</h4>
+    <div>distance = ${HEURISTICS.euclidean(startCell, goalCell).toFixed(2)} cell</div>
+    <div style="color:#00d4ff">Flight time ≈ <b>${flightTime.toFixed(2)} phút</b></div>
+    <h4>Q-Learning</h4>
+    <div>${qlStatus}</div>
+    <button class="ch-run" onclick="trainQL()">▶ Train 800 episodes</button>
+    <button class="ch-run" onclick="showQLPath()">▶ Hiện path Q-Learning</button>
+    <div id="ch9-ql-result" style="margin-top:6px"></div>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────
+//   Chapter Action Handlers
+// ─────────────────────────────────────────────────────────
+
+function runAllSearch() {
+  const algos = [
+    () => bfs(startCell, goalCell),
+    () => dfs(startCell, goalCell),
+    () => greedyBFS(startCell, goalCell),
+    () => aStarFull(startCell, goalCell, HEURISTICS.euclidean),
+  ];
+  const results = algos.map(fn => fn());
+  const rows = results.map(r => {
+    const status = r.found ? '✓' : '✗';
+    const cls = r.found ? '' : 'row-bad';
+    return `<tr class="${cls}"><td>${r.algorithm}</td><td>${status}</td><td>${r.found ? r.path.length : '–'}</td><td>${r.found ? r.cost.toFixed(2) : '–'}</td><td>${r.expanded}</td><td>${r.time.toFixed(1)}</td></tr>`;
+  }).join('');
+  document.getElementById('ch3-result').innerHTML = `
+    <table>
+      <tr><th>Algo</th><th>OK</th><th>Path</th><th>Cost</th><th>Nodes</th><th>ms</th></tr>
+      ${rows}
+    </table>
+  `;
+}
+
+function runHeuristicCompare() {
+  const hList = ['euclidean', 'manhattan', 'wind', 'energy', 'zero'];
+  const rows = hList.map(name => {
+    const r = aStarFull(startCell, goalCell, HEURISTICS[name]);
+    return `<tr><td>${name}</td><td>${r.found ? r.path.length : '–'}</td><td>${r.found ? r.cost.toFixed(2) : '–'}</td><td>${r.expanded}</td></tr>`;
+  }).join('');
+  document.getElementById('ch4-h-result').innerHTML = `
+    <table><tr><th>Heuristic</th><th>Path</th><th>Cost</th><th>Expanded</th></tr>${rows}</table>
+    <div style="color:#88aaaa;font-size:10px;margin-top:4px">Zero ≈ Dijkstra (expand nhiều nhất, cost tối ưu).</div>
+  `;
+}
+
+function runSA() {
+  if (!foundPath || foundPath.length < 4) {
+    document.getElementById('ch4-ls-result').innerHTML = '<span style="color:#ff8866">⚠ Cần A* path trước. Bấm "Tìm đường A*".</span>';
+    return;
+  }
+  const origCost = _pathCost(foundPath);
+  const res = simulatedAnnealing(foundPath);
+  document.getElementById('ch4-ls-result').innerHTML = `
+    <table>
+      <tr><td>Original</td><td>${foundPath.length} bước · cost ${origCost.toFixed(2)}</td></tr>
+      <tr class="row-hi"><td>SA</td><td>${res.path.length} bước · cost ${res.cost.toFixed(2)} · iter ${res.iterations}</td></tr>
+    </table>
+  `;
+}
+
+function runGA() {
+  const res = geneticAlgorithm(startCell, goalCell, 20, 40);
+  if (!res.path || res.path.length === 0) {
+    document.getElementById('ch4-ls-result').innerHTML = '<span style="color:#ff8866">GA không tìm được path khả thi.</span>';
+    return;
+  }
+  const baseRes = aStarFull(startCell, goalCell);
+  document.getElementById('ch4-ls-result').innerHTML = `
+    <table>
+      <tr><td>A* base</td><td>${baseRes.path.length} bước · cost ${baseRes.cost.toFixed(2)}</td></tr>
+      <tr class="row-hi"><td>GA</td><td>${res.path.length} bước · cost ${res.cost.toFixed(2)} · gen ${res.generations}</td></tr>
+    </table>
+  `;
+}
+
+function testKBNow() {
+  // Build percept từ trạng thái hiện tại
+  const percept = {
+    position: startCell.slice(),
+    battery: battery,
+    wind_speed: windSpeed,
+    obstacle_detected: false,
+    in_no_fly_zone: false,
+    on_path: true,
+    near_charger: false,
+  };
+  const kb = new KnowledgeBase();
+  kb.tellPercept(percept, 0);
+  const explanation = explainAction(kb.facts);
+  document.getElementById('ch5-test-result').innerHTML = `
+    <div class="rule-fired">
+      Rule fired: <b>${explanation.rule_id}</b> — ${explanation.rule_name}<br>
+      → Action: <code>${explanation.action}</code><br>
+      <small>${explanation.description}</small>
+    </div>
+  `;
+}
+
+function trainQL() {
+  document.getElementById('ch9-ql-result').innerHTML = '<em>Đang train...</em>';
+  setTimeout(() => {
+    qlAgent.Q.clear(); qlAgent.epsilon = 1.0;
+    const stats = qlAgent.train(startCell, goalCell, 800);
+    qlTrained = true;
+    document.getElementById('ch9-ql-result').innerHTML = `
+      <table>
+        <tr><td>Episodes</td><td>${stats.episodes}</td></tr>
+        <tr><td>Goal reached</td><td>${stats.goal_reached} (${(stats.success_rate*100).toFixed(0)}%)</td></tr>
+        <tr><td>Q-table size</td><td>${stats.q_table_size}</td></tr>
+        <tr><td>Final ε</td><td>${stats.final_epsilon.toFixed(3)}</td></tr>
+        <tr><td>Time</td><td>${stats.time_ms.toFixed(0)} ms</td></tr>
+      </table>
+    `;
+  }, 50);
+}
+
+function showQLPath() {
+  if (!qlTrained) {
+    document.getElementById('ch9-ql-result').innerHTML = '<span style="color:#ff8866">⚠ Train trước đã.</span>';
+    return;
+  }
+  const path = qlAgent.getPath(startCell, goalCell);
+  const reached = path[path.length-1].join(',') === goalCell.join(',');
+  // Vẽ path QL màu khác (xanh lá) đè lên
+  pathMeshes.forEach(m => scene.remove(m));
+  pathMeshes = [];
+  drawPath(path);
+  foundPath = path;
+  document.getElementById('s-path').textContent = path.length;
+  document.getElementById('path-len').textContent = path.length;
+  document.getElementById('path-cost').textContent = _pathCost(path).toFixed(2);
+  document.getElementById('ch9-ql-result').innerHTML = `
+    <div class="${reached ? 'row-hi' : 'row-warn'}" style="padding:4px 8px;border-radius:4px">
+      Path: ${path.length} bước · cost ${_pathCost(path).toFixed(2)} · ${reached ? '✓ tới đích' : '⚠ chưa tới'}
+    </div>
+  `;
+}
+
+// Init: hiện Ch2 mặc định
+showChapter(2);
+
+// ============================================================
 //   ANIMATION LOOP
 // ============================================================
 const clock = new THREE.Clock();
@@ -1000,8 +2122,31 @@ function animate() {
     const step = Math.floor(uavT * (foundPath.length - 1));
     const idx = Math.min(step, foundPath.length - 1);
     const [cx, cy, cz] = foundPath[idx];
+
+    // ── Ch5: KB-Agent tick — TELL percept, ASK action ──
+    const percept = {
+      position: [cx, cy, cz],
+      battery: battery,
+      wind_speed: windSpeed,
+      obstacle_detected: false,
+      in_no_fly_zone: nfzActive && nfzCells.some(c => c[0]===cx && c[1]===cy && c[2]===cz),
+      on_path: true,
+      near_charger: false,
+    };
+    kbAgent.tellPercept(percept, step);
+    currentFiredRule = explainAction(kbAgent.facts);
+
+    // Nếu tab Ch5 đang mở → cập nhật live
+    const activeTab = document.querySelector('.ch-tab.active');
+    if (activeTab && activeTab.dataset.ch === '5') {
+      document.getElementById('ch-content').innerHTML = renderCh5();
+    }
+
+    const ruleTag = currentFiredRule && currentFiredRule.rule_id !== 'DEFAULT'
+      ? ` | KB: ${currentFiredRule.rule_id}→${currentFiredRule.action}`
+      : '';
     document.getElementById('step-info').textContent =
-      `✈ UAV bay → Step ${step + 1}/${foundPath.length} | Vị trí (${cx},${cy},${cz}) | Pin ${Math.round(battery)}% | Gió ${windSpeed} m/s`;
+      `✈ UAV bay → Step ${step + 1}/${foundPath.length} | Vị trí (${cx},${cy},${cz}) | Pin ${Math.round(battery)}% | Gió ${windSpeed} m/s${ruleTag}`;
   }
 
   // Pulse light

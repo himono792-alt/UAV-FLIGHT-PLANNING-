@@ -10,4 +10,5 @@ Bao gồm:
 """
 
 from .grid_world import GridWorld3D
+from .city_grid import CityGrid3D
 from .obstacles import Obstacle, NoFlyZone, ObstacleManager
