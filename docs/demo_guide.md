@@ -100,7 +100,7 @@ python demo_hcm_3d.py
 
 ### Regenerate demo (nâng cao)
 
-Nếu MrB muốn build lại file `hcm_3d_demo.html` từ dữ liệu OSM mới:
+Nếu muốn build lại file `hcm_3d_demo.html` từ dữ liệu OSM mới:
 
 ```bash
 # Cần cài thêm pyyaml + requests
